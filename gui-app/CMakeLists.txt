@@ -4,6 +4,15 @@ project(gui-app)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
+qt_standard_project_setup()
+
 add_library(gui_lib STATIC ${SRCFILES})
-add_executable(Gui src/main.cpp)
-target_link_libraries(Gui gui_lib)
+target_link_libraries(gui_lib
+    PUBLIC
+    Qt6::Widgets)
+
+qt_add_executable(Gui src/main.cpp)
+
+target_link_libraries(Gui PRIVATE gui_lib)
