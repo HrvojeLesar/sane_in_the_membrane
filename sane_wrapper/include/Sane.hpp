@@ -8,30 +8,27 @@ extern "C" {
 
 #include "SaneDevice.hpp"
 #include <vector>
-#include <expected>
 #include <memory>
 
 namespace sane {
     class CSane {
-      private:
-        CSane(SANE_Int* version_code, SANE_Auth_Callback auth_callback = nullptr);
-
       public:
-        static std::expected<CSane, SANE_Status> create_instance(SANE_Int* version_code, SANE_Auth_Callback auth_callback = nullptr);
+        CSane(SANE_Auth_Callback auth_callback = nullptr);
         ~CSane();
 
-        CSane(const CSane&) noexcept = delete;
-        CSane(const CSane&&);
+        CSane(const CSane&) noexcept  = delete;
+        CSane(const CSane&&) noexcept = delete;
 
         std::vector<std::weak_ptr<CSaneDevice>>       get_devices(SANE_Bool local_only = false);
         const std::vector<std::weak_ptr<CSaneDevice>> peek_devices(SANE_Bool local_only = false);
+        SANE_Status                                   get_status() const;
 
       private:
-        SANE_Int*                                 m_version_code  = nullptr;
+        SANE_Int                                  m_version_code{};
         SANE_Auth_Callback                        m_auth_callback = nullptr;
         std::vector<std::shared_ptr<CSaneDevice>> m_devices{};
         std::vector<std::weak_ptr<CSaneDevice>>   m_devices_weak{};
-        SANE_Status                               init();
+        SANE_Status                               m_initialization_status{};
     };
 
 }
