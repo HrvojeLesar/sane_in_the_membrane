@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <expected>
 #include <memory>
-#include <optional>
 #include <vector>
 
 extern "C" {
@@ -15,15 +15,20 @@ sane::CSane::CSane(SANE_Int* version_code, SANE_Auth_Callback auth_callback) : m
 sane::CSane::~CSane() {
     sane_exit();
 }
+sane::CSane::CSane(const sane::CSane&& other) :
+    m_version_code(std::move(other.m_version_code)), m_auth_callback(std::move(other.m_auth_callback)), m_devices(std::move(other.m_devices)),
+    m_devices_weak(std::move(other.m_devices_weak)) {}
 
-std::optional<sane::CSane> sane::CSane::create_instance(SANE_Int* version_code, SANE_Auth_Callback auth_callback) {
-    CSane saneInstance(version_code, auth_callback);
+std::expected<sane::CSane, SANE_Status> sane::CSane::create_instance(SANE_Int* version_code, SANE_Auth_Callback auth_callback) {
+    sane::CSane sane_instance(version_code, auth_callback);
 
-    if (!saneInstance.init()) {
-        saneInstance;
+    auto        status = sane_instance.init();
+
+    if (status != SANE_STATUS_GOOD) {
+        return std::unexpected(status);
     }
 
-    return std::nullopt;
+    return sane_instance;
 }
 
 SANE_Status sane::CSane::init() {

@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #ifndef SANE_IN_THE_MEMBRANE
 #define SANE_IN_THE_MEMBRANE
 
@@ -7,9 +6,10 @@ extern "C" {
 #include <sane/sane.h>
 }
 
-#include <optional>
-#include <vector>
 #include "SaneDevice.hpp"
+#include <vector>
+#include <expected>
+#include <memory>
 
 namespace sane {
     class CSane {
@@ -17,11 +17,11 @@ namespace sane {
         CSane(SANE_Int* version_code, SANE_Auth_Callback auth_callback = nullptr);
 
       public:
-        static std::optional<CSane> create_instance(SANE_Int* version_code, SANE_Auth_Callback auth_callback = nullptr);
+        static std::expected<CSane, SANE_Status> create_instance(SANE_Int* version_code, SANE_Auth_Callback auth_callback = nullptr);
         ~CSane();
 
-        CSane(const CSane&) noexcept  = delete;
-        CSane(const CSane&&) noexcept = delete;
+        CSane(const CSane&) noexcept = delete;
+        CSane(const CSane&&);
 
         std::vector<std::weak_ptr<CSaneDevice>>       get_devices(SANE_Bool local_only = false);
         const std::vector<std::weak_ptr<CSaneDevice>> peek_devices(SANE_Bool local_only = false);

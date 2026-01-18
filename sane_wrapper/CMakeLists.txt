@@ -6,9 +6,7 @@ file(GLOB_RECURSE SRCFILES "src/*.cpp")
 file(GLOB_RECURSE PUBLIC_HEADERS CONFIGURE_DEPENDS "include/*.hpp")
 
 # add_library(sane_in_the_membrane_lib STATIC ${SRCFILES})
-add_library(sane_in_the_membrane_lib STATIC ${PUBLIC_HEADERS})
+add_library(sane_in_the_membrane_lib STATIC ${PUBLIC_HEADERS} ${SRCFILES})
 target_include_directories(sane_in_the_membrane_lib
     PUBLIC "./include"
 )
-set_target_properties(sane_in_the_membrane_lib PROPERTIES LINKER_LANGUAGE CXX)
-
