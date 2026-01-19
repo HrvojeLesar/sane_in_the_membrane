@@ -13,6 +13,6 @@ target_link_libraries(gui_lib
     PUBLIC
     Qt6::Widgets)
 
-qt_add_executable(Gui src/main.cpp)
+add_executable(Gui src/main.cpp)
 
 target_link_libraries(Gui PRIVATE gui_lib)

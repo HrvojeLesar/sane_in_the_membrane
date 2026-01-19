@@ -5,8 +5,10 @@ extern "C" {
 }
 
 int main(int argc, char* argv[]) {
-    sane::CSane sane{nullptr};
-    sane.get_devices();
+    sane::CSane sane{};
+    if (sane.is_ok()) {
+        sane.get_devices();
+    }
 
     std::println("Hello world server!");
 

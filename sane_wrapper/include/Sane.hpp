@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #ifndef SANE_IN_THE_MEMBRANE
 #define SANE_IN_THE_MEMBRANE
 
@@ -21,14 +22,16 @@ namespace sane {
 
         std::vector<std::weak_ptr<CSaneDevice>>       get_devices(SANE_Bool local_only = false);
         const std::vector<std::weak_ptr<CSaneDevice>> peek_devices(SANE_Bool local_only = false);
-        SANE_Status                                   get_status() const;
+        std::optional<SANE_Status>                    get_status() const;
+        bool                                          is_ok() const;
+        SANE_Status                                   init();
 
       private:
         SANE_Int                                  m_version_code{};
         SANE_Auth_Callback                        m_auth_callback = nullptr;
         std::vector<std::shared_ptr<CSaneDevice>> m_devices{};
         std::vector<std::weak_ptr<CSaneDevice>>   m_devices_weak{};
-        SANE_Status                               m_initialization_status{};
+        std::optional<SANE_Status>                m_initialization_status{};
     };
 
 }
