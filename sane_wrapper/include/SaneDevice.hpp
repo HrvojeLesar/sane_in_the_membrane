@@ -33,6 +33,7 @@ namespace sane {
         void                          cancel();
         SANE_Status                   set_io_mode(SANE_Bool is_none_blocking);
         SANE_String_Const             str_status(SANE_Status status);
+        void                          print_info();
 
         const SANE_Device*            m_raw_device{};
 

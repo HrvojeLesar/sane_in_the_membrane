@@ -17,7 +17,6 @@ add_executable(Server src/main.cpp)
 target_link_libraries(Server
     PUBLIC
         server_lib
-        sane_in_the_membrane_lib
     PRIVATE
         PkgConfig::SANE
 )

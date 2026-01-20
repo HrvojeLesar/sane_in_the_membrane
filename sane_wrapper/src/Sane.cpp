@@ -40,7 +40,7 @@ std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::get_devices(SANE_Bool
             auto device = device_list[i];
 
             auto device_p = std::make_shared<CSaneDevice>(device);
-
+            device_p->print_info();
 
             m_devices.emplace_back(std::move(device_p));
         }

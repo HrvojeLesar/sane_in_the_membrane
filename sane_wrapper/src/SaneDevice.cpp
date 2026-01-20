@@ -1,10 +1,11 @@
 #include "../include/SaneDevice.hpp"
+#include <print>
 
 sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device) {}
 sane::CSaneDevice::~CSaneDevice() {}
 
 SANE_Status sane::CSaneDevice::open() {
-    if (this->m_raw_device == nullptr) {
+    if (m_raw_device == nullptr) {
         return SANE_STATUS_INVAL;
     }
 
@@ -127,4 +128,11 @@ SANE_Status sane::CSaneDevice::set_io_mode(SANE_Bool is_none_blocking) {
 
 SANE_String_Const sane::CSaneDevice::str_status(SANE_Status status) {
     return sane_strstatus(status);
+}
+
+void sane::CSaneDevice::print_info() {
+    if (m_raw_device == nullptr) {
+        return;
+    }
+    std::println("Device: {}, {}, {}, {}", m_raw_device->model, m_raw_device->name, m_raw_device->type, m_raw_device->vendor);
 }
