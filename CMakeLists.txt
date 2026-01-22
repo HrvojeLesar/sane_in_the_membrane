@@ -18,5 +18,6 @@ add_compile_options(
 # find_package(PkgConfig REQUIRED)
 
 add_subdirectory(sane_wrapper)
+add_subdirectory(proto_lib)
 add_subdirectory(gui-app)
 add_subdirectory(server)

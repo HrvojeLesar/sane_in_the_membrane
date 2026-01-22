@@ -1,5 +1,4 @@
 #pragma once
-#include <optional>
 #ifndef SANE_IN_THE_MEMBRANE
 #define SANE_IN_THE_MEMBRANE
 
@@ -10,6 +9,7 @@ extern "C" {
 #include "SaneDevice.hpp"
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace sane {
     class CSane {
