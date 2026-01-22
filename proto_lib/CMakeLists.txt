@@ -26,11 +26,17 @@ function(grpc_generate_cpp SRCS HDRS)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
         string(REPLACE ".proto" ".grpc.pb.cc" GRPC_CC ${REL_FIL})
         string(REPLACE ".proto" ".grpc.pb.h" GRPC_H ${REL_FIL})
+        string(REPLACE ".proto" ".pb.cc" PB_CC ${REL_FIL})
+        string(REPLACE ".proto" ".pb.h" PB_H ${REL_FIL})
         list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_CC}")
         list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_H}")
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${PB_CC}")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${PB_H}")
         add_custom_command(
             OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_CC}"
-                    "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_H}"
+                   "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_H}"
+                   "${CMAKE_CURRENT_BINARY_DIR}/${PB_CC}"
+                   "${CMAKE_CURRENT_BINARY_DIR}/${PB_H}"
             COMMAND ${Protobuf_PROTOC_EXECUTABLE}
             ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
                  --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
@@ -49,13 +55,14 @@ endfunction()
 grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_FILES})
 
 add_library(generated_protobufs STATIC
-    ${PROTO_SRCS}
-    ${PROTO_HDRS}
     ${GRPC_SRCS}
     ${GRPC_HDRS}
 )
 
-target_link_libraries(generated_protobufs PUBLIC protobuf::libprotobuf gRPC::grpc++)
+target_link_libraries(generated_protobufs PUBLIC
+    protobuf::libprotobuf
+    gRPC::grpc++
+)
 
 target_include_directories(generated_protobufs PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}

@@ -11,7 +11,9 @@ qt_standard_project_setup()
 add_library(gui_lib STATIC ${SRCFILES})
 target_link_libraries(gui_lib
     PUBLIC
-    Qt6::Widgets)
+    Qt6::Widgets
+    generated_protobufs
+)
 
 add_executable(Gui src/main.cpp)
 

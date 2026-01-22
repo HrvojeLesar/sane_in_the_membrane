@@ -5,11 +5,30 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QString>
+#include <qtmetamacros.h>
+#include "helloworld/v1/helloworld.grpc.pb.h"
+#include <grpcpp/client_context.h>
+#include "helloworld/v1/helloworld.pb.h"
 
-class CScanButton : QPushButton {
+using namespace helloworld::v1;
+
+class CScanButton : public QPushButton {
   public:
-    CScanButton(QWidget* parent = nullptr);
-    CScanButton(const QString& text, QWidget* parent = nullptr);
+    CScanButton(QWidget* parent, GreeterService::Stub& s);
+
+  signals:
+    void click_callback() {
+        grpc::ClientContext context{};
+        SayHelloResponse    response{};
+        auto                status = stub.SayHello(&context, SayHelloRequest{}, &response);
+
+        if (status.ok()) {
+            std::cout << response.message() << "\n";
+        }
+    }
+
+  private:
+    GreeterService::Stub& stub;
 };
 
 #endif // !SCAN_BUTTON_H
