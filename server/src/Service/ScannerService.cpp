@@ -1,14 +1,14 @@
 #include "ScannerService.hpp"
 #include "Sane.hpp"
-#include "scanner/v1/scanner.pb.h"
-#include <chrono>
-#include <iostream>
+#include "../Reactors/ScanResponseReactor.hpp"
+#include "SaneDevice.hpp"
 #include <memory>
+#include <mutex>
 
 using namespace scanner::v1;
 using namespace service;
 
-bool CScannerServiceImpl::should_refetch_devices() const {
+bool CScannerServiceImpl::should_refresh_devices() const {
     return std::chrono::system_clock::now() > (m_last_device_fetch + std::chrono::seconds(30));
 }
 
@@ -16,15 +16,11 @@ grpc::ServerUnaryReactor* CScannerServiceImpl::GetScanners(grpc::CallbackServerC
 
     std::cout << "Getting scanners:\n";
     {
-        std::lock_guard<std::mutex> lock{m_mutex};
-
-        if (should_refetch_devices()) {
-            std::cout << "Refetching\n";
-            m_devices           = sane::g_sane->get_devices();
-            m_last_device_fetch = std::chrono::system_clock::now();
+        if (m_devices.empty()) {
+            refresh_devices();
         }
 
-        std::cout << "Scan me\n";
+        std::lock_guard<std::mutex> lock{m_mutex};
         for (const auto& device : m_devices) {
             if (!device.expired()) {
                 auto d          = device.lock();
@@ -41,6 +37,50 @@ grpc::ServerUnaryReactor* CScannerServiceImpl::GetScanners(grpc::CallbackServerC
             }
         }
     }
+
+    auto* reactor = context->DefaultReactor();
+    reactor->Finish(grpc::Status::OK);
+    return reactor;
+}
+
+grpc::ServerWriteReactor<ScanResponse>* CScannerServiceImpl::Scan(grpc::CallbackServerContext* context, const ScanRequest* request) {
+    std::cout << "Scanning\n";
+    std::shared_ptr<sane::CSaneDevice> device{};
+    {
+
+        std::lock_guard<std::mutex> lock{m_mutex};
+        auto&                       scanner_name = request->scanner_name();
+        device                                   = find_device(scanner_name);
+    }
+
+    return new reactor::CScanResponseReactor(device);
+}
+
+std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::string& name) const {
+    for (const auto& device : m_devices) {
+        if (!device.expired()) {
+            auto d = device.lock();
+                if (d->get_name() == name) {
+                return d;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+void CScannerServiceImpl::refresh_devices() {
+    std::lock_guard<std::mutex> lock{m_mutex};
+    if (should_refresh_devices()) {
+        std::cout << "Refreshing scanners\n";
+        m_devices           = sane::g_sane->get_devices();
+        m_last_device_fetch = std::chrono::system_clock::now();
+    }
+}
+
+grpc::ServerUnaryReactor* CScannerServiceImpl::RefreshScanners(grpc::CallbackServerContext* context, const RefreshScannersRequest* request, RefreshScannersResponse* response) {
+    std::cout << "Refreshing scanners:\n";
+    refresh_devices();
 
     auto* reactor = context->DefaultReactor();
     reactor->Finish(grpc::Status::OK);

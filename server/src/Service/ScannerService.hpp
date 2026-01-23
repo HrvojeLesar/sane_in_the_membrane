@@ -5,8 +5,7 @@
 #include "scanner/v1/scanner.grpc.pb.h"
 #include "scanner/v1/scanner.pb.h"
 #include <chrono>
-#include <grpcpp/server_context.h>
-#include <grpcpp/support/server_callback.h>
+#include <grpcpp/grpcpp.h>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -15,11 +14,15 @@ namespace service {
     using namespace scanner::v1;
 
     class CScannerServiceImpl : public ScannerService::CallbackService {
-      private:
-        grpc::ServerUnaryReactor* GetScanners(grpc::CallbackServerContext* context, const GetScannersRequest* request, GetScannersResponse* response) override;
+      public:
+        grpc::ServerUnaryReactor*               GetScanners(grpc::CallbackServerContext* context, const GetScannersRequest* request, GetScannersResponse* response) override;
+        grpc::ServerWriteReactor<ScanResponse>* Scan(grpc::CallbackServerContext* context, const ScanRequest* request) override;
+        grpc::ServerUnaryReactor* RefreshScanners(grpc::CallbackServerContext* context, const RefreshScannersRequest* request, RefreshScannersResponse* response) override;
 
       private:
-        bool should_refetch_devices() const;
+        bool                               should_refresh_devices() const;
+        std::shared_ptr<sane::CSaneDevice> find_device(const std::string& name) const;
+        void                               refresh_devices();
 
       private:
         std::vector<std::weak_ptr<sane::CSaneDevice>>      m_devices{};

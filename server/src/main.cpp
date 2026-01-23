@@ -4,6 +4,10 @@
 #include "Service/ScannerService.hpp"
 
 int main(int argc, char* argv[]) {
+    if (!sane::g_sane->is_ok()) {
+        std::cout << "Failed to initialize sane.\nExiting.\n";
+        return 1;
+    }
 
     service::CScannerServiceImpl was;
 

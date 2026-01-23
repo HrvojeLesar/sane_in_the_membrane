@@ -4,6 +4,8 @@ package scanner.v1;
 
 service ScannerService {
   rpc GetScanners(GetScannersRequest) returns (GetScannersResponse) {}
+  rpc Scan(ScanRequest) returns (stream ScanResponse) {}
+  rpc RefreshScanners(RefreshScannersRequest) returns (RefreshScannersResponse) {}
 }
 
 message ScannerInfo {
@@ -13,7 +15,24 @@ message ScannerInfo {
   optional string type = 4;
 }
 
+message ScanResponseData {
+  bool success = 1;
+  optional int32 err_value = 2;
+  bytes data = 3;
+}
+
 message GetScannersRequest {}
 message GetScannersResponse {
   repeated ScannerInfo scanners = 1;
 }
+
+message ScanRequest {
+  string scanner_name = 1;
+}
+message ScanResponse {
+  string scanner_name = 1;
+  ScanResponseData data = 2;
+}
+
+message RefreshScannersRequest {}
+message RefreshScannersResponse {}
