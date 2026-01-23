@@ -75,6 +75,8 @@ void CScannerServiceImpl::refresh_devices() {
         std::cout << "Refreshing scanners\n";
         m_devices           = sane::g_sane->get_devices();
         m_last_device_fetch = std::chrono::system_clock::now();
+    } else {
+        std::cout << "Skipped refreshing\n";
     }
 }
 
