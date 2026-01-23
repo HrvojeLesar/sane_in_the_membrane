@@ -8,16 +8,20 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(
-    -Wall 
-    -Wextra 
-    -Wno-unused-parameter 
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
     -Wno-unused-value
-    -Wno-missing-field-initializers 
+    -Wno-missing-field-initializers
     -Wno-narrowing)
-
-# find_package(PkgConfig REQUIRED)
 
 add_subdirectory(sane_wrapper)
 add_subdirectory(proto_lib)
-add_subdirectory(gui-app)
-add_subdirectory(server)
+
+if (NOT SKIP_GUI)
+    add_subdirectory(gui-app)
+endif()
+
+if (NOT SKIP_SERVER)
+    add_subdirectory(server)
+endif()
