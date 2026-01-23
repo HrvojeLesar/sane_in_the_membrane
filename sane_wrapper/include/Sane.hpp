@@ -34,6 +34,7 @@ namespace sane {
         std::optional<SANE_Status>                m_initialization_status{};
     };
 
+    inline std::unique_ptr<CSane> g_sane = std::make_unique<CSane>();
 }
 
 #endif // !SANE_IN_THE_MEMBRANE

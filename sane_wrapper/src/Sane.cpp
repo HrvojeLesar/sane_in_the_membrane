@@ -26,20 +26,20 @@ SANE_Status sane::CSane::init() {
 
 // TODO: Add handling for multiple threads, invalidate m_devices before sane_get_devices is called
 std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::get_devices(SANE_Bool local_only) {
+    for (const auto& device : m_devices) {
+        device->clear_raw_device();
+    }
+
     m_devices.clear();
 
     const SANE_Device** device_list;
-
-    // WARN: sane_get_devices and sane_exit invalidate all existing m_devices
-    // Queue or lock any sane_get_devices and sane_exit calls
-    // Before calling sane_exit all
-    auto status = sane_get_devices(&device_list, local_only);
+    auto                status = sane_get_devices(&device_list, local_only);
 
     if (status == SANE_STATUS_GOOD) {
         for (uint32_t i = 0; device_list[i] != nullptr; i++) {
             auto device = device_list[i];
 
-            auto device_p = std::make_shared<CSaneDevice>(device);
+            auto device_p = std::make_unique<CSaneDevice>(device);
             device_p->print_info();
 
             m_devices.emplace_back(std::move(device_p));

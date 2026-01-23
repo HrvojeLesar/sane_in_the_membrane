@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package scanner.v1;
+
+service ScannerService {
+  rpc GetScanners(GetScannersRequest) returns (GetScannersResponse) {}
+}
+
+message ScannerInfo {
+  string name = 1;
+  optional string vendor = 2;
+  optional string model = 3;
+  optional string type = 4;
+}
+
+message GetScannersRequest {}
+message GetScannersResponse {
+  repeated ScannerInfo scanners = 1;
+}

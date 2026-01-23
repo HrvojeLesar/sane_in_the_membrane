@@ -1,23 +1,21 @@
 #include <Sane.hpp>
 #include <grpcpp/grpcpp.h>
 
-#include "Connection/ServerSocket.hpp"
-#include "Service/HelloWorldService.hpp"
+#include "Service/ScannerService.hpp"
 
 int main(int argc, char* argv[]) {
 
-    HelloWorldServiceImpl was;
+    service::CScannerServiceImpl was;
 
-    grpc::ServerBuilder   builder;
+    grpc::ServerBuilder          builder;
     builder.AddListeningPort("localhost:50051", grpc::InsecureServerCredentials());
     builder.RegisterService(&was);
     auto server = builder.BuildAndStart();
 
     server->Wait();
 
-    // sane::CSane sane{};
-    // if (sane.is_ok()) {
-    //     sane.get_devices();
+    // if (sane::g_sane->is_ok()) {
+    //     sane::g_sane->get_devices();
     // }
 
     return 0;

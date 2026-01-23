@@ -6,29 +6,47 @@
 #include <QWidget>
 #include <QString>
 #include <qtmetamacros.h>
-#include "helloworld/v1/helloworld.grpc.pb.h"
 #include <grpcpp/client_context.h>
-#include "helloworld/v1/helloworld.pb.h"
+#include "scanner/v1/scanner.pb.h"
+#include "scanner/v1/scanner.grpc.pb.h"
 
-using namespace helloworld::v1;
+using namespace scanner::v1;
 
 class CScanButton : public QPushButton {
   public:
-    CScanButton(QWidget* parent, GreeterService::Stub& s);
+    CScanButton(QWidget* parent, ScannerService::Stub& s);
 
   signals:
     void click_callback() {
-        grpc::ClientContext context{};
-        SayHelloResponse    response{};
-        auto                status = stub.SayHello(&context, SayHelloRequest{}, &response);
+        auto context  = new grpc::ClientContext{};
+        auto response = new GetScannersResponse{};
+        auto request  = new GetScannersRequest{};
 
-        if (status.ok()) {
-            std::cout << response.message() << "\n";
-        }
+        std::cout << "Getting scanners:\n";
+
+        m_stub.async()->GetScanners(context, request, response, [request, response, context](grpc::Status status) {
+            if (!status.ok()) {
+                std::cout << "No scan\n";
+                return;
+            }
+
+            std::cout << "Was\n";
+            auto scanners = response->scanners();
+
+            std::cout << "Wijst\n";
+            for (const auto& scanner : scanners) {
+                std::cout << scanner.name() << "\n";
+            }
+
+            delete request;
+            delete response;
+            delete context;
+        });
+        std::cout << "Exited function\n";
     }
 
   private:
-    GreeterService::Stub& stub;
+    ScannerService::Stub& m_stub;
 };
 
 #endif // !SCAN_BUTTON_H

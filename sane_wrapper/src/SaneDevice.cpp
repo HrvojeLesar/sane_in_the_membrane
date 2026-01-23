@@ -1,19 +1,11 @@
 #include "../include/SaneDevice.hpp"
 #include <print>
 
-sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device) {}
+sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device), m_device_name(device->name) {}
 sane::CSaneDevice::~CSaneDevice() {}
 
 SANE_Status sane::CSaneDevice::open() {
-    if (m_raw_device == nullptr) {
-        return SANE_STATUS_INVAL;
-    }
-
-    if (m_raw_device->name == nullptr) {
-        return SANE_STATUS_INVAL;
-    }
-
-    auto status = sane_open(m_raw_device->name, &m_handle);
+    auto status = sane_open(m_device_name.c_str(), &m_handle);
 
     if (status == SANE_STATUS_GOOD) {
         m_current_state = EState::OPENED;
@@ -135,4 +127,16 @@ void sane::CSaneDevice::print_info() {
         return;
     }
     std::println("Device: {}, {}, {}, {}", m_raw_device->model, m_raw_device->name, m_raw_device->type, m_raw_device->vendor);
+}
+
+const std::string& sane::CSaneDevice::get_name() const {
+    return m_device_name;
+}
+
+void sane::CSaneDevice::clear_raw_device() {
+    m_raw_device = nullptr;
+}
+
+const SANE_Device* sane::CSaneDevice::get_raw_device() const {
+    return m_raw_device;
 }

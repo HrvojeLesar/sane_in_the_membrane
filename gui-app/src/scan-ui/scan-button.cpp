@@ -2,4 +2,4 @@
 #include <QPushButton>
 #include <QWidget>
 
-CScanButton::CScanButton(QWidget* parent, GreeterService::Stub& stub) : QPushButton("Scan", parent), stub(stub) {}
+CScanButton::CScanButton(QWidget* parent, ScannerService::Stub& stub) : QPushButton("Scan", parent), m_stub(stub) {}

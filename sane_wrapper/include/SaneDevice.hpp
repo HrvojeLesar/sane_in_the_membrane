@@ -6,6 +6,7 @@ extern "C" {
 #include <sane/sane.h>
 }
 #include <vector>
+#include <string>
 #include "SaneDeviceBuffer.hpp"
 
 namespace sane {
@@ -35,15 +36,19 @@ namespace sane {
         SANE_String_Const             str_status(SANE_Status status);
         void                          print_info();
 
-        const SANE_Device*            m_raw_device{};
+        const std::string&            get_name() const;
+        const SANE_Device*            get_raw_device() const;
+        void                          clear_raw_device();
 
       private:
+        const SANE_Device*                                              m_raw_device{};
         SANE_Handle                                                     m_handle{};
         SANE_Int                                                        m_max_options_n{};
         std::vector<std::pair<SANE_Int, const SANE_Option_Descriptor*>> m_option_descriptors{};
         SANE_Parameters                                                 m_parameters{};
         EState                                                          m_current_state{EState::CLOSED};
         sane::CSaneDeviceBuffer                                         m_buffer{2048};
+        std::string                                                     m_device_name{};
     };
 }
 
