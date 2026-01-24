@@ -3,7 +3,6 @@
 
 #include "MainWindow.hpp"
 #include "scanner/v1/scanner.grpc.pb.h"
-#include <condition_variable>
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include <memory>
@@ -11,13 +10,18 @@
 #include <qmainwindow.h>
 #include <qpushbutton.h>
 #include <thread>
+#include "../Service/GetScannersService.hpp"
+#include "../Service/RefreshScannersService.hpp"
 
 namespace ui {
     class CMainApp {
       public:
-        CMainApp(int argc, char* argv[]) :
-            m_app(argc, argv), m_channel(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials())), m_stub(m_channel), m_main_window(m_stub) {
+        CMainApp(int argc, char* argv[]) : m_app(argc, argv), m_channel(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials())), m_stub(m_channel) {
+            service::g_get_scanner_service     = std::make_unique<service::CGetScannersService>(m_stub);
+            service::g_refresh_scanner_service = std::make_unique<service::CRefreshScannersService>(m_stub);
+
             m_channel_thread = std::make_unique<std::thread>(&CMainApp::connect_channel, this);
+            m_main_window    = std::make_unique<CMainWindow>();
         }
 
         ~CMainApp() {
@@ -26,10 +30,11 @@ namespace ui {
             }
         }
 
-        void exec() {
-            m_app.exec();
+        int exec() {
+            return m_app.exec();
         }
 
+      private:
         void connect_channel() {
             if (!m_channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::seconds(5))) {
                 std::cout << "Could not connect to server\n";
@@ -43,10 +48,9 @@ namespace ui {
         QApplication                      m_app;
         std::shared_ptr<grpc::Channel>    m_channel{};
         std::unique_ptr<std::thread>      m_channel_thread{};
-        std::condition_variable           m_cv{};
         scanner::v1::ScannerService::Stub m_stub;
 
-        CMainWindow                       m_main_window;
+        std::unique_ptr<CMainWindow>      m_main_window;
     };
 }
 

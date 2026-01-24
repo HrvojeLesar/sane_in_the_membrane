@@ -1,8 +1,7 @@
 #include "Ui/MainApp.hpp"
 
 int main(int argc, char* argv[]) {
-    ui::CMainApp main(argc, argv);
-    main.exec();
+    ui::CMainApp app(argc, argv);
 
-    return 0;
+    return app.exec();
 }

@@ -2,55 +2,52 @@
 #define SCAN_BUTTON_H
 
 #include "../Readers/ScanResponseReader.hpp"
-#include "scanner/v1/scanner.grpc.pb.h"
 #include <QPushButton>
 #include <QString>
 #include <QWidget>
 #include <grpcpp/client_context.h>
+#include <iostream>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qtmetamacros.h>
 
-#include "../Service/RefreshScannersService.hpp"
 #include "../Service/GetScannersService.hpp"
 
 using namespace scanner::v1;
 
 class CScanButton : public QPushButton {
   public:
-    CScanButton(QWidget* parent, ScannerService::Stub& stub) : QPushButton("Scan", parent), m_stub(stub), m_refresh_scanners_service(m_stub), m_get_scanners_service(m_stub) {
-        m_other_button = new QPushButton("cu", parent);
-        m_other_button->setGeometry(20, 20, 100, 30);
-        QObject::connect(this, &CScanButton::clicked, this, &CScanButton::click_callback);
-        QObject::connect(m_other_button, &QPushButton::clicked, this, &CScanButton::get_scanners);
+    CScanButton(QWidget* parent) : QPushButton("Scan", parent) {
+        QObject::connect(this, &CScanButton::clicked, this, &CScanButton::on_clicked_get_scanners);
+        QObject::connect(service::g_get_scanner_service.get(), &service::CGetScannersService::sig_get_scanners_failed, this, &CScanButton::sl_get_scanners_failed);
+        QObject::connect(service::g_get_scanner_service.get(), &service::CGetScannersService::sig_get_scanners, this, &CScanButton::sl_get_scanners);
     }
 
-    ~CScanButton() {
-        delete m_other_button;
+    ~CScanButton() {}
+
+  private slots:
+    void sl_get_scanners_failed() {
+        std::cout << "Failed to get scanners\n";
+        setDisabled(false);
     }
 
-  signals:
-    void click_callback() {
-        setDisabled(true);
-        m_refresh_scanners_service.refresh_scanners([this]() {
-            std::cout << "Calling callback\n";
-            this->setDisabled(false);
-        });
-    }
-
-    void get_scanners() {
-        m_other_button->setDisabled(true);
-        m_get_scanners_service.refresh_scanners([this]() {
-            std::cout << "Calling callback\n";
-            this->m_other_button->setDisabled(false);
-        });
+    void sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response) {
+        std::cout << "Got scanners\n";
+        setDisabled(false);
     }
 
   private:
-    ScannerService::Stub&            m_stub;
-    service::CRefreshScannersService m_refresh_scanners_service;
-    service::CGetScannersService     m_get_scanners_service;
-    QPushButton*                     m_other_button;
+    void on_clicked_get_scanners() {
+        std::cout << "clicky\n";
+        setDisabled(true);
+        get_scanners();
+    }
+
+    void get_scanners() {
+        service::g_get_scanner_service->get_scanners();
+    }
+
+  private:
 };
 
 #endif // !SCAN_BUTTON_H
