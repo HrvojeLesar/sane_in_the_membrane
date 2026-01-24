@@ -2,38 +2,28 @@
 #define SERVICE_REFRESH_SCANNERS_SERVICE
 
 #include "scanner/v1/scanner.grpc.pb.h"
-#include <functional>
 #include <grpcpp/client_context.h>
-#include <iostream>
 #include <memory>
+#include <QObject>
 
 namespace service {
-    class CRefreshScannersService {
+    class CRefreshScannersService : public QObject {
+        Q_OBJECT
       public:
-        CRefreshScannersService(scanner::v1::ScannerService::Stub& stub) : m_stub(stub) {}
-        ~CRefreshScannersService() {
-            std::cout << "Destroying refresh scanners service\n";
-        }
+        CRefreshScannersService(scanner::v1::ScannerService::Stub& stub);
+        ~CRefreshScannersService();
 
-        void refresh_scanners(std::function<void()> callback) {
-            auto context  = std::make_shared<grpc::ClientContext>();
-            auto request  = std::make_shared<scanner::v1::RefreshScannersRequest>();
-            auto response = std::make_shared<scanner::v1::RefreshScannersResponse>();
-            std::cout << "Trying to refresh scanners\n";
-            m_stub.async()->RefreshScanners(context.get(), request.get(), response.get(), [callback, context, request, response](grpc::Status status) {
-                if (!status.ok()) {
-                    std::cout << "Failed to refresh scanners\n";
-                } else {
-                    std::cout << "Refreshed scanners\n";
-                }
+        void refresh_scanners();
 
-                callback();
-            });
-        }
+      signals:
+        void sig_refresh_scanners_failed();
+        void sig_refresh_scanners(std::shared_ptr<scanner::v1::RefreshScannersResponse>);
 
       private:
         scanner::v1::ScannerService::Stub& m_stub;
     };
+
+    inline std::unique_ptr<CRefreshScannersService> g_refresh_scanner_service{nullptr};
 }
 
 #endif // !SERVICE_REFRESH_SCANNERS_SERVICE

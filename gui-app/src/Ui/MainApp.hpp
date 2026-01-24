@@ -12,6 +12,7 @@
 #include <thread>
 #include "../Service/GetScannersService.hpp"
 #include "../Service/RefreshScannersService.hpp"
+#include "../Service/DeviceList.hpp"
 
 namespace ui {
     class CMainApp {
@@ -19,6 +20,7 @@ namespace ui {
         CMainApp(int argc, char* argv[]) : m_app(argc, argv), m_channel(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials())), m_stub(m_channel) {
             service::g_get_scanner_service     = std::make_unique<service::CGetScannersService>(m_stub);
             service::g_refresh_scanner_service = std::make_unique<service::CRefreshScannersService>(m_stub);
+            service::g_device_list             = std::make_unique<service::CDeviceList>();
 
             m_channel_thread = std::make_unique<std::thread>(&CMainApp::connect_channel, this);
             m_main_window    = std::make_unique<CMainWindow>();
