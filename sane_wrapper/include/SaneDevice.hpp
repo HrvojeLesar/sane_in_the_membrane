@@ -21,6 +21,7 @@ namespace sane {
 
       public:
         CSaneDevice(const SANE_Device* device);
+        CSaneDevice(const char* device_name);
         ~CSaneDevice();
 
         SANE_Status                   open();
@@ -30,15 +31,22 @@ namespace sane {
         SANE_Status                   get_parameters();
         SANE_Status                   start();
         SANE_Status                   read();
-        SANE_Status                   read(sane::CSaneDeviceBuffer& buffer);
-        void                          cancel();
-        SANE_Status                   set_io_mode(SANE_Bool is_none_blocking);
-        SANE_String_Const             str_status(SANE_Status status);
-        void                          print_info();
 
-        const std::string&            get_name() const;
-        const SANE_Device*            get_raw_device() const;
-        void                          clear_raw_device();
+        template <std::size_t N>
+        SANE_Status        read(sane::CSaneDeviceBuffer<N>& buffer);
+        void               cancel();
+        SANE_Status        set_io_mode(SANE_Bool is_none_blocking);
+        SANE_String_Const  str_status(SANE_Status status);
+        void               print_info();
+
+        const std::string& get_name() const;
+        const SANE_Device* get_raw_device() const;
+        void               clear_raw_device();
+
+      public:
+        const SANE_Parameters& parameters() const {
+            return m_parameters;
+        }
 
       private:
         const SANE_Device*                                              m_raw_device{};
@@ -47,7 +55,7 @@ namespace sane {
         std::vector<std::pair<SANE_Int, const SANE_Option_Descriptor*>> m_option_descriptors{};
         SANE_Parameters                                                 m_parameters{};
         EState                                                          m_current_state{EState::CLOSED};
-        sane::CSaneDeviceBuffer                                         m_buffer{2048};
+        sane::CSaneDeviceBuffer<2048>                                   m_buffer{};
         std::string                                                     m_device_name{};
     };
 }

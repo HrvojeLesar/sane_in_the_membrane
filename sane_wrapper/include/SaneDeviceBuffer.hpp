@@ -1,26 +1,35 @@
-#pragma once
 #ifndef SANE_IN_THE_MEMBRANE_DEVICE_BUFFER
 #define SANE_IN_THE_MEMBRANE_DEVICE_BUFFER
 
+#include <array>
 extern "C" {
 #include <sane/sane.h>
 }
 #include <cstddef>
-#include <vector>
 
 namespace sane {
+    template <std::size_t N = 2048>
     class CSaneDeviceBuffer {
       public:
-        CSaneDeviceBuffer();
-        CSaneDeviceBuffer(std::size_t reserve);
-        ~CSaneDeviceBuffer();
+        CSaneDeviceBuffer() {}
+        CSaneDeviceBuffer(const CSaneDeviceBuffer& other) : m_data{other.m_data} {}
+        CSaneDeviceBuffer(const CSaneDeviceBuffer&& other) : m_data{std::move(other.m_data)} {}
 
-        std::vector<SANE_Byte> m_data{};
+        CSaneDeviceBuffer& operator=(const CSaneDeviceBuffer& other) {
+            this->m_data = other.m_data;
 
-        SANE_Int               max_len() const;
-        SANE_Int               read_len = 0;
-        void                   resize();
-        void                   resize(std::size_t size);
+            return *this;
+        }
+        CSaneDeviceBuffer& operator=(const CSaneDeviceBuffer&& other) {
+            this->m_data = std::move(other.m_data);
+
+            return *this;
+        }
+
+        ~CSaneDeviceBuffer() {}
+
+        std::array<SANE_Byte, N> m_data{};
+        SANE_Int                 read_len = 0;
     };
 
 }

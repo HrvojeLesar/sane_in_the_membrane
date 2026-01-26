@@ -1,7 +1,9 @@
 #include "../include/SaneDevice.hpp"
+#include <iostream>
 #include <print>
 
 sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device), m_device_name(device->name) {}
+sane::CSaneDevice::CSaneDevice(const char* device_name) : m_raw_device(nullptr), m_device_name(device_name) {}
 sane::CSaneDevice::~CSaneDevice() {}
 
 SANE_Status sane::CSaneDevice::open() {
@@ -59,14 +61,7 @@ SANE_Status sane::CSaneDevice::get_parameters() {
         return SANE_STATUS_INVAL;
     }
 
-    SANE_Parameters params{};
-
-    auto            status = sane_get_parameters(m_handle, &params);
-    if (status == SANE_STATUS_GOOD) {
-        m_parameters = params;
-    }
-
-    return status;
+    return sane_get_parameters(m_handle, &m_parameters);
 }
 
 SANE_Status sane::CSaneDevice::start() {
@@ -87,20 +82,13 @@ SANE_Status sane::CSaneDevice::read() {
     return read(m_buffer);
 }
 
-SANE_Status sane::CSaneDevice::read(sane::CSaneDeviceBuffer& buffer) {
+template <std::size_t N>
+SANE_Status sane::CSaneDevice::read(sane::CSaneDeviceBuffer<N>& buffer) {
     if (m_handle == nullptr || m_current_state != EState::STARTED) {
         return SANE_STATUS_INVAL;
     }
 
-    if (buffer.m_data.size() + buffer.max_len() >= buffer.m_data.capacity()) {
-        buffer.resize();
-    }
-
-    auto data_point = buffer.m_data.data() + (sizeof(SANE_Byte) * buffer.m_data.size());
-
-    auto status = sane_read(m_handle, data_point, buffer.max_len(), &buffer.read_len);
-
-    buffer.m_data.resize(buffer.m_data.size() + buffer.read_len);
+    auto status = sane_read(m_handle, buffer.m_data.data(), buffer.m_data.max_size(), &buffer.read_len);
 
     return status;
 }
