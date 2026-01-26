@@ -15,6 +15,7 @@ add_compile_options(
     -Wno-missing-field-initializers
     -Wno-narrowing)
 
+add_subdirectory(utils)
 add_subdirectory(sane_wrapper)
 add_subdirectory(proto_lib)
 
