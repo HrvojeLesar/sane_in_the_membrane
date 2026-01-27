@@ -10,3 +10,12 @@ add_library(sane_in_the_membrane_lib STATIC ${PUBLIC_HEADERS} ${SRCFILES})
 target_include_directories(sane_in_the_membrane_lib
     PUBLIC "./include"
 )
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SANE REQUIRED IMPORTED_TARGET sane-backends)
+
+target_link_libraries(sane_in_the_membrane_lib
+    PRIVATE
+        PkgConfig::SANE
+)
+
