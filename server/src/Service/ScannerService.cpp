@@ -45,7 +45,6 @@ grpc::ServerWriteReactor<ScanResponse>* CScannerServiceImpl::Scan(grpc::Callback
     std::cout << "Scanning\n";
     std::shared_ptr<sane::CSaneDevice> device{};
     {
-
         auto& scanner_name = request->scanner_name();
         device             = find_device(scanner_name);
     }
@@ -57,7 +56,7 @@ std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::s
     for (const auto& device : *m_devices.access()) {
         if (!device.expired()) {
             auto d = device.lock();
-                if (d->get_name() == name) {
+            if (d->get_name() == name) {
                 return d;
             }
         }
