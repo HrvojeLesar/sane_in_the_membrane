@@ -19,27 +19,27 @@ namespace service {
     CDeviceList::~CDeviceList() {}
 
     void CDeviceList::add_scanner_item(const CScannerItem scanner_item) {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_scanners.push_back(std::make_shared<CScannerItem>(std::move(scanner_item)));
-        emit sig_scanners_changed(m_scanners);
+        auto scanners = m_scanners.access();
+        scanners->push_back(std::make_shared<CScannerItem>(std::move(scanner_item)));
+        emit sig_scanners_changed(*scanners);
     }
 
     void CDeviceList::set_scanner_items(const std::vector<std::shared_ptr<CScannerItem>>& items) {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto scanners = m_scanners.access();
         for (const auto& scanner_item : items) {
-            m_scanners.emplace_back(scanner_item);
+            scanners->emplace_back(scanner_item);
         }
 
-        emit sig_scanners_changed(m_scanners);
+        emit sig_scanners_changed(*scanners);
     }
     const std::vector<std::shared_ptr<CScannerItem>>& CDeviceList::get_scanners() const {
-        return m_scanners;
+        return *m_scanners.shared_access();
     }
 
     void CDeviceList::clear() {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_scanners.clear();
-        emit sig_scanners_changed(m_scanners);
+        auto scanners = m_scanners.access();
+        scanners->clear();
+        emit sig_scanners_changed(*scanners);
     }
 
     void CDeviceList::sl_get_scanners_failed() {

@@ -3,25 +3,23 @@
 #include "../Reactors/ScanResponseReactor.hpp"
 #include "SaneDevice.hpp"
 #include <memory>
-#include <mutex>
 
 using namespace scanner::v1;
 using namespace service;
 
 bool CScannerServiceImpl::should_refresh_devices() const {
-    return std::chrono::system_clock::now() > (m_last_device_fetch + std::chrono::seconds(30));
+    return std::chrono::system_clock::now() > (*m_last_device_fetch.shared_access() + std::chrono::seconds(30));
 }
 
 grpc::ServerUnaryReactor* CScannerServiceImpl::GetScanners(grpc::CallbackServerContext* context, const GetScannersRequest* request, GetScannersResponse* response) {
 
     std::cout << "Getting scanners:\n";
     {
-        if (m_devices.empty()) {
+        if (m_devices.shared_access()->empty()) {
             refresh_devices();
         }
 
-        std::lock_guard<std::mutex> lock{m_mutex};
-        for (const auto& device : m_devices) {
+        for (const auto& device : *m_devices.access()) {
             if (!device.expired()) {
                 auto d          = device.lock();
                 auto raw_device = d->get_raw_device();
@@ -48,16 +46,15 @@ grpc::ServerWriteReactor<ScanResponse>* CScannerServiceImpl::Scan(grpc::Callback
     std::shared_ptr<sane::CSaneDevice> device{};
     {
 
-        std::lock_guard<std::mutex> lock{m_mutex};
-        auto&                       scanner_name = request->scanner_name();
-        device                                   = find_device(scanner_name);
+        auto& scanner_name = request->scanner_name();
+        device             = find_device(scanner_name);
     }
 
     return new reactor::CScanResponseReactor(device);
 }
 
 std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::string& name) const {
-    for (const auto& device : m_devices) {
+    for (const auto& device : *m_devices.access()) {
         if (!device.expired()) {
             auto d = device.lock();
                 if (d->get_name() == name) {
@@ -70,7 +67,6 @@ std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::s
 }
 
 void CScannerServiceImpl::refresh_devices() {
-    std::lock_guard<std::mutex> lock{m_mutex};
     if (should_refresh_devices()) {
         std::cout << "Refreshing scanners\n";
         m_devices           = sane::g_sane->get_devices();

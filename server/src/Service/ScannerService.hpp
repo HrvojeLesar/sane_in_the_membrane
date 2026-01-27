@@ -7,11 +7,12 @@
 #include <chrono>
 #include <grpcpp/grpcpp.h>
 #include <memory>
-#include <mutex>
 #include <vector>
+#include "SynchronizedAccess.hpp"
 
 namespace service {
     using namespace scanner::v1;
+    using namespace sane_in_the_membrane::utils;
 
     class CScannerServiceImpl : public ScannerService::CallbackService {
       public:
@@ -25,10 +26,9 @@ namespace service {
         void                               refresh_devices();
 
       private:
-        std::vector<std::weak_ptr<sane::CSaneDevice>>      m_devices{};
-        std::mutex                                         m_mutex{};
+        UniqueAccess<std::vector<std::weak_ptr<sane::CSaneDevice>>>      m_devices{};
 
-        std::chrono::time_point<std::chrono::system_clock> m_last_device_fetch{};
+        UniqueAccess<std::chrono::time_point<std::chrono::system_clock>> m_last_device_fetch{};
     };
 }
 

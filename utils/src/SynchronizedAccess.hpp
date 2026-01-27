@@ -10,7 +10,7 @@ namespace sane_in_the_membrane::utils {
     template <typename T, typename LockType = std::unique_lock<std::shared_mutex>>
     class AccessGuard {
       public:
-        AccessGuard(T& object, std::shared_mutex& mutex) : m_object(object), m_lock(mutex) {}
+        AccessGuard(T& object, std::shared_mutex& mutex) : m_object(&object), m_lock(mutex) {}
         AccessGuard(AccessGuard<T, LockType>&& other) : m_object(other.m_object), m_lock(std::move(other.m_lock)) {}
 
         AccessGuard<T, LockType>& operator=(AccessGuard<T, LockType>&& other) {
@@ -21,7 +21,7 @@ namespace sane_in_the_membrane::utils {
         }
 
         T* operator->() const {
-            return &this->m_object;
+            return this->m_object;
         }
 
         T& operator*() const {
@@ -29,7 +29,7 @@ namespace sane_in_the_membrane::utils {
         }
 
       private:
-        T&       m_object;
+        T*       m_object;
         LockType m_lock;
     };
 
@@ -55,18 +55,18 @@ namespace sane_in_the_membrane::utils {
             return *this;
         }
 
-        AccessGuard<T> access() {
+        AccessGuard<T> access() const {
             return AccessGuard<T>(m_object, m_mutex);
         }
 
         template <typename O = T, typename = std::enable_if_t<!std::is_const_v<O>>>
-        SharedAccessGuard<const T> shared_access() {
-            return SharedAccessGuard<const T>(m_object, m_mutex);
+        SharedAccessGuard<const O> shared_access() const {
+            return SharedAccessGuard<const O>(m_object, m_mutex);
         }
 
       private:
-        T                 m_object;
-        std::shared_mutex m_mutex;
+        mutable T                 m_object;
+        mutable std::shared_mutex m_mutex;
     };
 }
 

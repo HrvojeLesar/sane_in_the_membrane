@@ -5,12 +5,15 @@
 #include <QComboBox>
 #include <QVariant>
 #include <memory>
-#include <mutex>
 #include <qobject.h>
 #include <qtmetamacros.h>
 #include <vector>
 
+#include "SynchronizedAccess.hpp"
+
 namespace service {
+    using namespace sane_in_the_membrane::utils;
+
     class CScannerItem : public QVariant {
       public:
         CScannerItem(QString&& scanner_name, QString&& scanner_display_name);
@@ -52,8 +55,7 @@ namespace service {
         void sig_scanners_changed(const std::vector<std::shared_ptr<CScannerItem>>&);
 
       private:
-        std::mutex                                 m_mutex{};
-        std::vector<std::shared_ptr<CScannerItem>> m_scanners{};
+        UniqueAccess<std::vector<std::shared_ptr<CScannerItem>>> m_scanners{};
     };
 
     inline std::unique_ptr<CDeviceList> g_device_list{nullptr};

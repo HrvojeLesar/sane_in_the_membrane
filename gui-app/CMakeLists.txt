@@ -13,6 +13,7 @@ target_link_libraries(gui_lib
     PUBLIC
     Qt6::Widgets
     generated_protobufs
+    sane_in_the_membrane_utils_lib
 )
 
 add_executable(Gui src/main.cpp)
