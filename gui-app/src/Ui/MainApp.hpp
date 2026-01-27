@@ -23,10 +23,11 @@ namespace ui {
             service::g_device_list             = std::make_unique<service::CDeviceList>();
 
             m_channel_thread = std::make_unique<std::thread>(&CMainApp::connect_channel, this);
-            m_main_window    = std::make_unique<CMainWindow>();
+            m_main_window    = new CMainWindow();
         }
 
         ~CMainApp() {
+            delete m_main_window;
             if (m_channel_thread.get() != nullptr && m_channel_thread->joinable()) {
                 m_channel_thread->join();
             }
@@ -52,7 +53,7 @@ namespace ui {
         std::unique_ptr<std::thread>      m_channel_thread{};
         scanner::v1::ScannerService::Stub m_stub;
 
-        std::unique_ptr<CMainWindow>      m_main_window;
+        CMainWindow*                      m_main_window;
     };
 }
 

@@ -19,31 +19,38 @@ namespace service {
     CDeviceList::~CDeviceList() {}
 
     void CDeviceList::add_scanner_item(const CScannerItem scanner_item) {
-        auto scanners = m_scanners.access();
-        scanners->push_back(std::make_shared<CScannerItem>(std::move(scanner_item)));
-        emit sig_scanners_changed(*scanners);
+        {
+            auto scanners = m_scanners.access();
+            scanners->push_back(std::make_shared<CScannerItem>(std::move(scanner_item)));
+        }
+        auto shared_access = m_scanners.shared_access();
+        emit sig_scanners_changed(shared_access);
     }
 
     void CDeviceList::set_scanner_items(const std::vector<std::shared_ptr<CScannerItem>>& items) {
-        auto scanners = m_scanners.access();
-        for (const auto& scanner_item : items) {
-            scanners->emplace_back(scanner_item);
+        {
+            clear_internal();
+            auto scanners = m_scanners.access();
+            for (const auto& scanner_item : items) {
+                scanners->emplace_back(scanner_item);
+            }
         }
 
-        emit sig_scanners_changed(*scanners);
+        auto shared_access = m_scanners.shared_access();
+        emit sig_scanners_changed(shared_access);
     }
-    const std::vector<std::shared_ptr<CScannerItem>>& CDeviceList::get_scanners() const {
-        return *m_scanners.shared_access();
+    const SharedAccessGuard<std::vector<std::shared_ptr<CScannerItem>>> CDeviceList::get_scanners() const {
+        return m_scanners.shared_access();
     }
 
     void CDeviceList::clear() {
-        auto scanners = m_scanners.access();
-        scanners->clear();
-        emit sig_scanners_changed(*scanners);
+        clear_internal();
+        auto shared_access = m_scanners.shared_access();
+        emit sig_scanners_changed(shared_access);
     }
 
     void CDeviceList::sl_get_scanners_failed() {
-        std::cout << "Failed to get scanners\n";
+        std::cout << "Device List - Failed to get scanners\n";
     }
 
     void CDeviceList::sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response) {
@@ -53,5 +60,10 @@ namespace service {
         }
 
         set_scanner_items(scanners);
+    }
+
+    void CDeviceList::clear_internal() {
+        auto scanners = m_scanners.access();
+        scanners->clear();
     }
 }

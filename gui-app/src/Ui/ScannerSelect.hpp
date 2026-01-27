@@ -12,11 +12,11 @@ namespace ui {
         CScannerSelect(QWidget* parent = nullptr);
 
       private slots:
-        void sl_scanners_changed(const std::vector<std::shared_ptr<service::CScannerItem>>&);
+        void sl_scanners_changed(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items);
 
       private:
         void display_items();
-        void display_items(const std::vector<std::shared_ptr<service::CScannerItem>>&);
+        void display_items(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items);
     };
 }
 

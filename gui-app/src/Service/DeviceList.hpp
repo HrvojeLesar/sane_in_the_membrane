@@ -42,17 +42,20 @@ namespace service {
         CDeviceList();
         ~CDeviceList();
 
-        void                                              add_scanner_item(const CScannerItem scanner_item);
-        void                                              set_scanner_items(const std::vector<std::shared_ptr<CScannerItem>>& items);
-        const std::vector<std::shared_ptr<CScannerItem>>& get_scanners() const;
-        void                                              clear();
+        void                                                                add_scanner_item(const CScannerItem scanner_item);
+        void                                                                set_scanner_items(const std::vector<std::shared_ptr<CScannerItem>>& items);
+        const SharedAccessGuard<std::vector<std::shared_ptr<CScannerItem>>> get_scanners() const;
+        void                                                                clear();
 
       private slots:
         void sl_get_scanners_failed();
         void sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response);
 
       signals:
-        void sig_scanners_changed(const std::vector<std::shared_ptr<CScannerItem>>&);
+        void sig_scanners_changed(const SharedAccessGuard<std::vector<std::shared_ptr<CScannerItem>>>& scanners);
+
+      private:
+        void clear_internal();
 
       private:
         UniqueAccess<std::vector<std::shared_ptr<CScannerItem>>> m_scanners{};
