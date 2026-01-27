@@ -7,6 +7,7 @@ extern "C" {
 }
 #include <vector>
 #include <string>
+#include "SaneStatus.hpp"
 #include "SaneDeviceBuffer.hpp"
 
 namespace sane {
@@ -24,19 +25,19 @@ namespace sane {
         CSaneDevice(const char* device_name);
         ~CSaneDevice();
 
-        SANE_Status                   open();
+        CSaneStatus                   open();
         void                          close();
         const SANE_Option_Descriptor* get_option_descriptor(SANE_Int option_number);
-        SANE_Status                   control_option(SANE_Int option_number, SANE_Action action, void* data, SANE_Int* info);
-        SANE_Status                   get_parameters();
-        SANE_Status                   start();
-        SANE_Status                   read();
+        CSaneStatus                   control_option(SANE_Int option_number, SANE_Action action, void* data, SANE_Int* info);
+        CSaneStatus                   refresh_parameters();
+        CSaneStatus                   start();
+        CSaneStatus                   read();
 
         template <std::size_t N>
-        SANE_Status        read(sane::CSaneDeviceBuffer<N>& buffer);
+        CSaneStatus        read(sane::CSaneDeviceBuffer<N>& buffer);
         void               cancel();
-        SANE_Status        set_io_mode(SANE_Bool is_none_blocking);
-        SANE_String_Const  str_status(SANE_Status status);
+        CSaneStatus        set_io_mode(SANE_Bool is_none_blocking);
+        SANE_String_Const  str_status(CSaneStatus status);
         void               print_info();
 
         const std::string& get_name() const;

@@ -6,7 +6,7 @@ sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device)
 sane::CSaneDevice::CSaneDevice(const char* device_name) : m_raw_device(nullptr), m_device_name(device_name) {}
 sane::CSaneDevice::~CSaneDevice() {}
 
-SANE_Status sane::CSaneDevice::open() {
+sane::CSaneStatus sane::CSaneDevice::open() {
     auto status = sane_open(m_device_name.c_str(), &m_handle);
 
     if (status == SANE_STATUS_GOOD) {
@@ -48,7 +48,7 @@ const SANE_Option_Descriptor* sane::CSaneDevice::get_option_descriptor(SANE_Int 
     return descriptor;
 }
 
-SANE_Status sane::CSaneDevice::control_option(SANE_Int option_number, SANE_Action action, void* data, SANE_Int* info) {
+sane::CSaneStatus sane::CSaneDevice::control_option(SANE_Int option_number, SANE_Action action, void* data, SANE_Int* info) {
     if (m_handle == nullptr || m_current_state != EState::OPENED) {
         return SANE_STATUS_INVAL;
     }
@@ -56,7 +56,7 @@ SANE_Status sane::CSaneDevice::control_option(SANE_Int option_number, SANE_Actio
     return sane_control_option(m_handle, option_number, action, data, info);
 }
 
-SANE_Status sane::CSaneDevice::get_parameters() {
+sane::CSaneStatus sane::CSaneDevice::refresh_parameters() {
     if (m_handle == nullptr) {
         return SANE_STATUS_INVAL;
     }
@@ -64,7 +64,7 @@ SANE_Status sane::CSaneDevice::get_parameters() {
     return sane_get_parameters(m_handle, &m_parameters);
 }
 
-SANE_Status sane::CSaneDevice::start() {
+sane::CSaneStatus sane::CSaneDevice::start() {
     if (m_handle == nullptr || m_current_state != EState::OPENED) {
         return SANE_STATUS_INVAL;
     }
@@ -78,12 +78,12 @@ SANE_Status sane::CSaneDevice::start() {
     return status;
 }
 
-SANE_Status sane::CSaneDevice::read() {
+sane::CSaneStatus sane::CSaneDevice::read() {
     return read(m_buffer);
 }
 
 template <std::size_t N>
-SANE_Status sane::CSaneDevice::read(sane::CSaneDeviceBuffer<N>& buffer) {
+sane::CSaneStatus sane::CSaneDevice::read(sane::CSaneDeviceBuffer<N>& buffer) {
     if (m_handle == nullptr || m_current_state != EState::STARTED) {
         return SANE_STATUS_INVAL;
     }
@@ -102,12 +102,12 @@ void sane::CSaneDevice::cancel() {
     m_current_state = old_state;
 }
 
-SANE_Status sane::CSaneDevice::set_io_mode(SANE_Bool is_none_blocking) {
+sane::CSaneStatus sane::CSaneDevice::set_io_mode(SANE_Bool is_none_blocking) {
     return sane_set_io_mode(m_handle, is_none_blocking);
 }
 
-SANE_String_Const sane::CSaneDevice::str_status(SANE_Status status) {
-    return sane_strstatus(status);
+SANE_String_Const sane::CSaneDevice::str_status(sane::CSaneStatus status) {
+    return status.str_status();
 }
 
 void sane::CSaneDevice::print_info() {

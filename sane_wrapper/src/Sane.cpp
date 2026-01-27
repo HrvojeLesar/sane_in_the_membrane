@@ -18,7 +18,7 @@ sane::CSane::~CSane() {
     sane_exit();
 }
 
-SANE_Status sane::CSane::init() {
+sane::CSaneStatus sane::CSane::init() {
     m_initialization_status = sane_init(&m_version_code, m_auth_callback);
 
     return m_initialization_status.value();
@@ -60,7 +60,7 @@ const std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::peek_devices(SA
     return m_devices_weak;
 }
 
-std::optional<SANE_Status> sane::CSane::get_status() const {
+std::optional<sane::CSaneStatus> sane::CSane::get_status() const {
     return m_initialization_status;
 }
 
