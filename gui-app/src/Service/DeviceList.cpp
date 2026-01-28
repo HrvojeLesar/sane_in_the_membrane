@@ -3,12 +3,11 @@
 #include <memory>
 
 namespace service {
-    CScannerItem::CScannerItem(QString&& scanner_name, QString&& scanner_display_name) : QVariant(), m_scanner_name(scanner_name), m_scanner_display_name(scanner_display_name) {}
-    CScannerItem::CScannerItem(const CScannerItem& other) : QVariant() {}
-    CScannerItem::CScannerItem(const CScannerItem&& other) :
-        QVariant(), m_scanner_name(std::move(other.m_scanner_name)), m_scanner_display_name(std::move(other.m_scanner_display_name)) {}
+    CScannerItem::CScannerItem(QString&& scanner_name, QString&& scanner_display_name) : m_scanner_name(scanner_name), m_scanner_display_name(scanner_display_name) {}
+    CScannerItem::CScannerItem(const CScannerItem& other) : m_scanner_name(other.m_scanner_name), m_scanner_display_name(other.m_scanner_display_name) {}
+    CScannerItem::CScannerItem(const CScannerItem&& other) : m_scanner_name(std::move(other.m_scanner_name)), m_scanner_display_name(std::move(other.m_scanner_display_name)) {}
     CScannerItem::CScannerItem(const scanner::v1::ScannerInfo& scanner_info) :
-        QVariant(), m_scanner_name(QString::fromStdString(std::format("{}", scanner_info.name()))),
+        m_scanner_name(QString::fromStdString(std::format("{}", scanner_info.name()))),
         m_scanner_display_name(QString::fromStdString(std::format("{} {}", scanner_info.vendor(), scanner_info.model()))) {}
     CScannerItem::~CScannerItem() {}
 

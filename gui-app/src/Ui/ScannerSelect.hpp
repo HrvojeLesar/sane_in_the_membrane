@@ -3,6 +3,9 @@
 
 #include <QComboBox>
 #include <QVariant>
+#include <memory>
+#include <qcombobox.h>
+#include <qvariant.h>
 #include "../Service/DeviceList.hpp"
 
 namespace ui {
@@ -10,6 +13,8 @@ namespace ui {
         Q_OBJECT
       public:
         CScannerSelect(QWidget* parent = nullptr);
+
+        std::shared_ptr<service::CScannerItem> currentData(int role = Qt::UserRole) const;
 
       private slots:
         void sl_scanners_changed(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items);

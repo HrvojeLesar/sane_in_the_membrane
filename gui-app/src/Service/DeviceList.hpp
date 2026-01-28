@@ -14,7 +14,7 @@
 namespace service {
     using namespace sane_in_the_membrane::utils;
 
-    class CScannerItem : public QVariant {
+    class CScannerItem {
       public:
         CScannerItem(QString&& scanner_name, QString&& scanner_display_name);
         CScannerItem(const scanner::v1::ScannerInfo& scanner_info);

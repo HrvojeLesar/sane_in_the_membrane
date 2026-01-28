@@ -11,6 +11,7 @@
 #include <qwidget.h>
 #include "ScannerSelect.hpp"
 #include "RefreshScanners.hpp"
+#include "ScanButton.hpp"
 
 namespace ui {
     class CMainWindow : public QMainWindow {
@@ -26,12 +27,14 @@ namespace ui {
 
             m_scanner_hbox = new QHBoxLayout();
 
+            m_scan_button = new sane_in_the_membrane::ui::CScanButton(m_scanner_select);
+
             m_scanner_hbox->addWidget(m_scanner_select);
             m_scanner_hbox->addWidget(m_refresh_button);
 
             m_scanner_layout = new QFormLayout();
 
-            // m_form_layout->addRow(new QLabel("Scan:"), m_refresh_button);
+            m_form_layout->addRow(new QLabel("Scan:"), m_scan_button);
             m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
             m_group_box->setLayout(m_form_layout);
 
@@ -55,6 +58,7 @@ namespace ui {
         QHBoxLayout*                              m_scanner_hbox{};
         QFormLayout*                              m_scanner_layout{};
         sane_in_the_membrane::ui::CRefreshButton* m_refresh_button{};
+        sane_in_the_membrane::ui::CScanButton*    m_scan_button{};
     };
 }
 
