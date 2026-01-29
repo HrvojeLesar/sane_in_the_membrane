@@ -36,8 +36,9 @@ void CScanResponseReactor::OnWriteDone(bool ok) {
 }
 
 void CScanResponseReactor::write_response() {
-    m_byte_data_string.assign(m_byte_data.begin(), m_byte_data.end());
-    m_data.set_allocated_data(&m_byte_data_string);
+    m_byte_data_string->assign(m_byte_data.begin(), m_byte_data.end());
+    m_data->set_allocated_data(m_byte_data_string);
+    m_response.set_allocated_data(m_data);
 
     StartWrite(&m_response);
 }
@@ -46,11 +47,9 @@ void CScanResponseReactor::next_packet() {
     std::cout << "Next packet\n";
     reset_response();
 
-    m_byte_data.clear();
-
     while (true) {
         auto status = m_device->read();
-        if (status.is_ok() || status == SANE_STATUS_EOF) {
+        if ((status.is_ok() || status == SANE_STATUS_EOF) && m_buffer.read_len > 0) {
             m_byte_data.insert(m_byte_data.end(), m_buffer.m_data.begin(), m_buffer.m_data.begin() + m_buffer.read_len);
         }
 
@@ -74,22 +73,24 @@ void CScanResponseReactor::next_packet() {
 }
 
 void CScanResponseReactor::write_sane_parameters(const SANE_Parameters& parameters) {
-    m_parameters.set_format(parameters.format);
-    m_parameters.set_last_frame(parameters.last_frame);
-    m_parameters.set_bytes_per_line(parameters.bytes_per_line);
-    m_parameters.set_pixels_per_line(parameters.pixels_per_line);
-    m_parameters.set_lines(parameters.lines);
-    m_parameters.set_depth(parameters.depth);
+    m_parameters = new ScanParameters();
+    m_parameters->set_format(parameters.format);
+    m_parameters->set_last_frame(parameters.last_frame);
+    m_parameters->set_bytes_per_line(parameters.bytes_per_line);
+    m_parameters->set_pixels_per_line(parameters.pixels_per_line);
+    m_parameters->set_lines(parameters.lines);
+    m_parameters->set_depth(parameters.depth);
+
+    m_response.set_allocated_parameters(m_parameters);
 }
 
 void CScanResponseReactor::reset_response() {
+    std::cout << "Resetting response\n";
     m_response.Clear();
-    m_data.Clear();
-    m_byte_data_string.clear();
-
-    m_response.set_allocated_data(&m_data);
-    m_response.set_allocated_parameters(&m_parameters);
-    m_data.set_allocated_data(&m_byte_data_string);
+    m_byte_data.clear();
+    m_data             = new ScanResponseData();
+    m_byte_data_string = new std::string();
+    std::cout << "Reset response\n";
 }
 
 void CScanResponseReactor::start_scan() {
@@ -112,4 +113,14 @@ void CScanResponseReactor::start_scan() {
     write_sane_parameters(m_device->parameters());
 
     StartWrite(&m_response);
+}
+
+void CScanResponseReactor::Finish(grpc::Status status) {
+    auto finished = m_finished.access();
+    if (*finished) {
+        return;
+    }
+    *finished = true;
+
+    grpc::ServerWriteReactor<ScanResponse>::Finish(status);
 }

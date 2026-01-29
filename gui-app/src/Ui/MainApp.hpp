@@ -4,6 +4,7 @@
 #include "MainWindow.hpp"
 #include "scanner/v1/scanner.grpc.pb.h"
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/support/channel_arguments.h>
 #include <iostream>
 #include <memory>
 #include <qapplication.h>
@@ -13,14 +14,18 @@
 #include "../Service/GetScannersService.hpp"
 #include "../Service/RefreshScannersService.hpp"
 #include "../Service/DeviceList.hpp"
+#include "../Readers/ScanResponseReader.hpp"
 
 namespace ui {
+    static grpc::ChannelArguments args;
+
     class CMainApp {
       public:
-        CMainApp(int argc, char* argv[]) : m_app(argc, argv), m_channel(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials())), m_stub(m_channel) {
+        CMainApp(int argc, char* argv[]) : m_app(argc, argv), m_channel(grpc::CreateCustomChannel("localhost:50051", grpc::InsecureChannelCredentials(), args)), m_stub(m_channel) {
             service::g_get_scanner_service     = std::make_unique<service::CGetScannersService>(m_stub);
             service::g_refresh_scanner_service = std::make_unique<service::CRefreshScannersService>(m_stub);
             service::g_device_list             = std::make_unique<service::CDeviceList>();
+            reader::g_scan_response_reader     = std::make_unique<reader::CScanResponseReader>(m_stub);
 
             m_channel_thread = std::make_unique<std::thread>(&CMainApp::connect_channel, this);
             m_main_window    = new CMainWindow();

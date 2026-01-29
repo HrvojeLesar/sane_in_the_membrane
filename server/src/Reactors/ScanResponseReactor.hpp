@@ -8,6 +8,7 @@
 #include <vector>
 #include "SaneDevice.hpp"
 #include "SaneDeviceBuffer.hpp"
+#include "SynchronizedAccess.hpp"
 #include "scanner/v1/scanner.pb.h"
 
 namespace reactor {
@@ -30,14 +31,17 @@ namespace reactor {
 
         void write_sane_parameters(const SANE_Parameters& parameters);
 
+        void Finish(grpc::Status status);
+
       private:
-        std::shared_ptr<sane::CSaneDevice> m_device;
-        ScanResponse                       m_response{};
-        ScanResponseData                   m_data{};
-        ScanParameters                     m_parameters{};
-        std::vector<unsigned char>         m_byte_data{};
-        sane::CSaneDeviceBuffer<2048>      m_buffer{};
-        std::string                        m_byte_data_string{};
+        std::shared_ptr<sane::CSaneDevice>              m_device;
+        ScanResponse                                    m_response{};
+        ScanResponseData*                               m_data{};
+        ScanParameters*                                 m_parameters{};
+        std::vector<unsigned char>                      m_byte_data{};
+        sane::CSaneDeviceBuffer<2048>                   m_buffer{};
+        std::string*                                    m_byte_data_string{};
+        sane_in_the_membrane::utils::UniqueAccess<bool> m_finished{false};
     };
 }
 
