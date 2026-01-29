@@ -68,8 +68,11 @@ std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::s
 void CScannerServiceImpl::refresh_devices() {
     if (should_refresh_devices()) {
         std::cout << "Refreshing scanners\n";
-        m_devices           = sane::g_sane->get_devices();
-        m_last_device_fetch = std::chrono::system_clock::now();
+        auto devices           = m_devices.access();
+        auto last_device_fetch = m_last_device_fetch.access();
+
+        *devices               = sane::g_sane->get_devices();
+        *last_device_fetch     = std::chrono::system_clock::now();
     } else {
         std::cout << "Skipped refreshing\n";
     }
