@@ -21,6 +21,8 @@ namespace sane_in_the_membrane::ui {
         void on_clicked_get_scanners();
         void get_scanners();
         void refresh_scanners();
+        void enable_button();
+        void refreshing();
     };
 }
 

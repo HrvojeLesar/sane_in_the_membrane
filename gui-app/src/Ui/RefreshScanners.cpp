@@ -24,16 +24,15 @@ void CRefreshButton::sl_refresh_scanners() {
 
 void CRefreshButton::sl_get_scanners_failed() {
     std::cout << "Get scanners failed - button \n";
-    setDisabled(false);
+    enable_button();
 }
 
 void CRefreshButton::sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response) {
-    setDisabled(false);
+    enable_button();
 }
 
 void CRefreshButton::on_clicked_get_scanners() {
-    setDisabled(true);
-
+    refreshing();
     refresh_scanners();
 }
 
@@ -43,4 +42,13 @@ void CRefreshButton::get_scanners() {
 
 void CRefreshButton::refresh_scanners() {
     service::g_refresh_scanner_service->refresh_scanners();
+}
+void CRefreshButton::enable_button() {
+    setText("Refresh");
+    setDisabled(false);
+}
+
+void CRefreshButton::refreshing() {
+    setText("Refreshing...");
+    setDisabled(true);
 }
