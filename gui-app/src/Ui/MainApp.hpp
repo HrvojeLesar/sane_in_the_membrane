@@ -17,15 +17,19 @@
 #include "../Readers/ScanResponseReader.hpp"
 
 namespace ui {
-    static grpc::ChannelArguments args;
-
     class CMainApp {
       public:
-        CMainApp(int argc, char* argv[]) : m_app(argc, argv), m_channel(grpc::CreateCustomChannel("localhost:50051", grpc::InsecureChannelCredentials(), args)), m_stub(m_channel) {
-            service::g_get_scanner_service     = std::make_unique<service::CGetScannersService>(m_stub);
-            service::g_refresh_scanner_service = std::make_unique<service::CRefreshScannersService>(m_stub);
+        CMainApp(QApplication& app) : m_app(app) {
+
+            grpc::ChannelArguments args;
+            args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
+
+            m_channel                          = grpc::CreateCustomChannel("localhost:50051", grpc::InsecureChannelCredentials(), args);
+            m_stub                             = std::make_shared<scanner::v1::ScannerService::Stub>(m_channel);
+            service::g_get_scanner_service     = std::make_unique<service::CGetScannersService>(*m_stub);
+            service::g_refresh_scanner_service = std::make_unique<service::CRefreshScannersService>(*m_stub);
             service::g_device_list             = std::make_unique<service::CDeviceList>();
-            reader::g_scan_response_reader     = std::make_unique<reader::CScanResponseReader>(m_stub);
+            reader::g_scan_response_reader     = std::make_unique<reader::CScanResponseReader>(*m_stub);
 
             m_channel_thread = std::make_unique<std::thread>(&CMainApp::connect_channel, this);
             m_main_window    = new CMainWindow();
@@ -53,12 +57,12 @@ namespace ui {
         }
 
       private:
-        QApplication                      m_app;
-        std::shared_ptr<grpc::Channel>    m_channel{};
-        std::unique_ptr<std::thread>      m_channel_thread{};
-        scanner::v1::ScannerService::Stub m_stub;
+        QApplication&                                      m_app;
+        std::shared_ptr<grpc::Channel>                     m_channel{nullptr};
+        std::unique_ptr<std::thread>                       m_channel_thread{nullptr};
+        std::shared_ptr<scanner::v1::ScannerService::Stub> m_stub{nullptr};
 
-        CMainWindow*                      m_main_window;
+        CMainWindow*                                       m_main_window{nullptr};
     };
 }
 

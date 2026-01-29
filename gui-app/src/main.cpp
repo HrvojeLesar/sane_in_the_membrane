@@ -1,7 +1,7 @@
 #include "Ui/MainApp.hpp"
 
 int main(int argc, char* argv[]) {
-    ui::args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
-    ui::CMainApp app(argc, argv);
+    QApplication q_app(argc, argv);
+    ui::CMainApp app(q_app);
     return app.exec();
 }
