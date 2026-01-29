@@ -37,7 +37,7 @@ void CScanResponseReactor::OnWriteDone(bool ok) {
 
 void CScanResponseReactor::write_response() {
     m_byte_data_string->assign(m_byte_data.begin(), m_byte_data.end());
-    m_data->set_allocated_data(m_byte_data_string);
+    m_data->set_allocated_raw_bytes(m_byte_data_string);
     m_response.set_allocated_data(m_data);
 
     StartWrite(&m_response);
@@ -48,7 +48,7 @@ void CScanResponseReactor::next_packet() {
     reset_response();
 
     while (true) {
-        auto status = m_device->read();
+        auto status = m_device->read(m_buffer);
         if ((status.is_ok() || status == SANE_STATUS_EOF) && m_buffer.read_len > 0) {
             m_byte_data.insert(m_byte_data.end(), m_buffer.m_data.begin(), m_buffer.m_data.begin() + m_buffer.read_len);
         }
@@ -90,6 +90,7 @@ void CScanResponseReactor::reset_response() {
     m_byte_data.clear();
     m_data             = new ScanResponseData();
     m_byte_data_string = new std::string();
+    m_response.set_scanner_name(m_device->get_name());
     std::cout << "Reset response\n";
 }
 

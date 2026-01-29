@@ -16,9 +16,7 @@ message ScannerInfo {
 }
 
 message ScanResponseData {
-  bool success = 1;
-  optional int32 err_value = 2;
-  bytes data = 3;
+  bytes raw_bytes = 1;
 }
 
 message ScanParameters {

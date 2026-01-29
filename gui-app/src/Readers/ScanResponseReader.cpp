@@ -25,11 +25,11 @@ void reader::CScanResponseReader::OnReadDone(bool ok) {
         }
 
         if (m_response.has_data()) {
-            const auto& data = m_response.data().data();
+            const auto& data = m_response.data().raw_bytes();
             m_byte_data.insert(m_byte_data.end(), data.begin(), data.end());
         }
 
-        std::cout << "Read: \n" << m_response.scanner_name() << "\n" << m_response.data().success() << "\n" << m_response.data().data().size() << "\n";
+        std::cout << "Read from: \n" << m_response.scanner_name() << "\n" << "Size: " << m_response.data().raw_bytes().size() << "\n";
         StartRead(&m_response);
     }
 }
@@ -48,6 +48,14 @@ void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
             outfile.write(reinterpret_cast<const char*>(m_byte_data.data()), m_byte_data.size());
             outfile.close();
         }
+        std::cout << "Read from: \n" << m_response.scanner_name() << "\n" << "Size: " << m_response.data().raw_bytes().size() << "\n";
+        std::cout << "Params: "
+                  << "Bytes per line: " << m_params.bytes_per_line << "\n"
+                  << "Pixels per line: " << m_params.pixels_per_line << "\n"
+                  << "Lines: " << m_params.lines << "\n"
+                  << "Depth: " << m_params.depth << "\n"
+                  << "Format: " << m_params.format << "\n"
+                  << "Last frame: " << m_params.last_frame << "\n";
 
         // sane_in_the_membrane::utils::write_image("scan.png", 1648, 2291, m_byte_data.data());
         sane_in_the_membrane::utils::write_image("scan.png", m_params.pixels_per_line, m_params.lines, m_byte_data.data());
@@ -62,7 +70,6 @@ void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
 
 void reader::CScanResponseReader::reset() {
     reset_context();
-    m_byte_data.clear();
     m_byte_data = std::vector<char>{};
 }
 
