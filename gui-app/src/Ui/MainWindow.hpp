@@ -6,12 +6,15 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <qboxlayout.h>
+#include <qevent.h>
 #include <qformlayout.h>
 #include <qgroupbox.h>
+#include <qmessagebox.h>
 #include <qwidget.h>
 #include "ScannerSelect.hpp"
 #include "RefreshScanners.hpp"
 #include "ScanButton.hpp"
+#include <QMessageBox>
 
 namespace ui {
     class CMainWindow : public QMainWindow {
@@ -47,6 +50,24 @@ namespace ui {
         }
 
         ~CMainWindow() {}
+
+        void closeEvent(QCloseEvent* event) override {
+            QMessageBox confirm_box{};
+            confirm_box.setText("Close application ?");
+
+            confirm_box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+            confirm_box.setDefaultButton(QMessageBox::Ok);
+
+            auto exec_status = confirm_box.exec();
+
+            switch (exec_status) {
+                case QMessageBox::Ok:
+                case QMessageBox::Close: break;
+
+                case QMessageBox::Cancel:
+                default: event->ignore(); break;
+            }
+        }
 
       private:
         QWidget*                                  m_central_widget{};
