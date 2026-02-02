@@ -16,6 +16,7 @@ CRefreshButton::CRefreshButton(QWidget* parent) : QPushButton("Refresh", parent)
 
 void CRefreshButton::sl_refresh_scanners_failed() {
     std::cout << "Refresh failed - button \n";
+    enable_button();
 }
 
 void CRefreshButton::sl_refresh_scanners() {
