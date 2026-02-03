@@ -6,9 +6,9 @@
 
 int main(int argc, char* argv[]) {
 
-    service::CScannerServiceImpl was;
+    sane_in_the_membrane::service::CScannerServiceImpl was;
 
-    grpc::ServerBuilder          builder;
+    grpc::ServerBuilder                                builder;
     builder.AddListeningPort("localhost:50051", grpc::InsecureServerCredentials());
     builder.RegisterService(&was);
     auto server = builder.BuildAndStart();

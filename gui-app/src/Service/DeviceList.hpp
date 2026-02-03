@@ -11,7 +11,7 @@
 
 #include "SynchronizedAccess.hpp"
 
-namespace service {
+namespace sane_in_the_membrane::service {
     using namespace sane_in_the_membrane::utils;
 
     class CScannerItem {

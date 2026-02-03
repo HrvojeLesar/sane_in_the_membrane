@@ -10,6 +10,8 @@ extern "C" {
 #include <sane/sane.h>
 }
 
+using namespace sane_in_the_membrane;
+
 sane::CSane::CSane(SANE_Auth_Callback auth_callback) : m_auth_callback(auth_callback) {
     init();
 };

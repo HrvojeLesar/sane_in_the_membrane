@@ -3,11 +3,13 @@
 #include "SynchronizedAccess.hpp"
 #include <qvariant.h>
 
+using namespace sane_in_the_membrane;
+
 ui::CScannerSelect::CScannerSelect(QWidget* parent) : QComboBox() {
     QObject::connect(service::g_device_list.get(), &service::CDeviceList::sig_scanners_changed, this, &CScannerSelect::sl_scanners_changed);
 }
 
-void ui::CScannerSelect::sl_scanners_changed(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
+void ui::CScannerSelect::sl_scanners_changed(const utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
     display_items(items);
 }
 
@@ -16,7 +18,7 @@ void ui::CScannerSelect::display_items() {
     display_items(m_scanner_items);
 }
 
-void ui::CScannerSelect::display_items(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
+void ui::CScannerSelect::display_items(const utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
     clear();
     for (const auto& scanner_item : *items) {
         addItem(scanner_item->scanner_display_name(), QVariant::fromValue(scanner_item));

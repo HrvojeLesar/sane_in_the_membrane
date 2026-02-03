@@ -1,6 +1,6 @@
 #include "GetScannersService.hpp"
 
-namespace service {
+namespace sane_in_the_membrane::service {
     CGetScannersService::CGetScannersService(scanner::v1::ScannerService::Stub& stub) : m_stub(stub) {}
 
     void CGetScannersService::get_scanners() {

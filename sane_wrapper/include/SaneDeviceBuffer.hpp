@@ -7,7 +7,7 @@ extern "C" {
 }
 #include <cstddef>
 
-namespace sane {
+namespace sane_in_the_membrane::sane {
     template <std::size_t N = 2048>
     class CSaneDeviceBuffer {
       public:

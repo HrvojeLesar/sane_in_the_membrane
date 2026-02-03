@@ -5,7 +5,8 @@
 #include <memory>
 
 using namespace scanner::v1;
-using namespace service;
+using namespace sane_in_the_membrane;
+using namespace sane_in_the_membrane::service;
 
 bool CScannerServiceImpl::should_refresh_devices() const {
     return std::chrono::system_clock::now() > (*m_last_device_fetch.shared_access() + std::chrono::seconds(30));

@@ -6,7 +6,7 @@
 #include <memory>
 #include <QObject>
 
-namespace service {
+namespace sane_in_the_membrane::service {
     class CRefreshScannersService : public QObject {
         Q_OBJECT
       public:

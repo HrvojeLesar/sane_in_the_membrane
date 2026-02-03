@@ -12,7 +12,7 @@ extern "C" {
 #include <memory>
 #include <optional>
 
-namespace sane {
+namespace sane_in_the_membrane::sane {
     class CSane {
       public:
         CSane(SANE_Auth_Callback auth_callback = nullptr);

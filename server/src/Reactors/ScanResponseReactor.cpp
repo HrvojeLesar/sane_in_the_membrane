@@ -1,6 +1,6 @@
 #include "ScanResponseReactor.hpp"
 
-using namespace reactor;
+using namespace sane_in_the_membrane::reactor;
 
 CScanResponseReactor::CScanResponseReactor(std::shared_ptr<sane::CSaneDevice> m_device) : m_device(m_device) {
     if (m_device.get() != nullptr) {

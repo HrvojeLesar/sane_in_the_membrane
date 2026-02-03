@@ -7,7 +7,7 @@
 
 using namespace sane_in_the_membrane::ui;
 
-CScanButton::CScanButton(::ui::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
+CScanButton::CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
     QObject::connect(this, &CScanButton::clicked, this, &CScanButton::sl_clicked);
     QObject::connect(reader::g_scan_response_reader.get(), &reader::CScanResponseReader::sig_done, this, &CScanButton::sl_sig_done);
     QObject::connect(service::g_device_list.get(), &service::CDeviceList::sig_scanners_changed, this, &CScanButton::sl_scanners_changed);

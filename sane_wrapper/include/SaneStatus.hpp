@@ -5,7 +5,7 @@ extern "C" {
 #include <sane/sane.h>
 }
 
-namespace sane {
+namespace sane_in_the_membrane::sane {
     class CSaneStatus {
       public:
         CSaneStatus(SANE_Status status);

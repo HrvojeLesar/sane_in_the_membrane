@@ -10,7 +10,7 @@ extern "C" {
 #include "SaneStatus.hpp"
 #include "SaneDeviceBuffer.hpp"
 
-namespace sane {
+namespace sane_in_the_membrane::sane {
     class CSaneDevice {
 
         enum class EState {

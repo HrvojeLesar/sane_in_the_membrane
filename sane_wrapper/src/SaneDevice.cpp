@@ -2,6 +2,8 @@
 #include <iostream>
 #include <print>
 
+using namespace sane_in_the_membrane;
+
 sane::CSaneDevice::CSaneDevice(const SANE_Device* device) : m_raw_device(device), m_device_name(device->name) {}
 sane::CSaneDevice::CSaneDevice(const char* device_name) : m_raw_device(nullptr), m_device_name(device_name) {}
 sane::CSaneDevice::~CSaneDevice() {}

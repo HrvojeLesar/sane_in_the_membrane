@@ -8,7 +8,7 @@
 #include <qvariant.h>
 #include "../Service/DeviceList.hpp"
 
-namespace ui {
+namespace sane_in_the_membrane::ui {
     class CScannerSelect : public QComboBox {
         Q_OBJECT
       public:

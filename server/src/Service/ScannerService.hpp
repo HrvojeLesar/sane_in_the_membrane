@@ -10,7 +10,7 @@
 #include <vector>
 #include "SynchronizedAccess.hpp"
 
-namespace service {
+namespace sane_in_the_membrane::service {
     using namespace scanner::v1;
     using namespace sane_in_the_membrane::utils;
 

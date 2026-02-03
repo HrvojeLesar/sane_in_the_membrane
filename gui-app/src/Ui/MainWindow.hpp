@@ -16,7 +16,7 @@
 #include "ScanButton.hpp"
 #include <QMessageBox>
 
-namespace ui {
+namespace sane_in_the_membrane::ui {
     class CMainWindow : public QMainWindow {
       public:
         CMainWindow() {

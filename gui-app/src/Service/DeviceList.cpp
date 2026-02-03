@@ -2,7 +2,7 @@
 #include "GetScannersService.hpp"
 #include <memory>
 
-namespace service {
+namespace sane_in_the_membrane::service {
     CScannerItem::CScannerItem(QString&& scanner_name, QString&& scanner_display_name) : m_scanner_name(scanner_name), m_scanner_display_name(scanner_display_name) {}
     CScannerItem::CScannerItem(const CScannerItem& other) : m_scanner_name(other.m_scanner_name), m_scanner_display_name(other.m_scanner_display_name) {}
     CScannerItem::CScannerItem(const CScannerItem&& other) : m_scanner_name(std::move(other.m_scanner_name)), m_scanner_display_name(std::move(other.m_scanner_display_name)) {}

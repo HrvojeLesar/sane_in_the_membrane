@@ -7,7 +7,7 @@
 #include <vector>
 #include "scanner/v1/scanner.grpc.pb.h"
 
-namespace reader {
+namespace sane_in_the_membrane::reader {
     using namespace scanner::v1;
 
     struct ScannerParameters {

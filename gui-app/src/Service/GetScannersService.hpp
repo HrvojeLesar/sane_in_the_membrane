@@ -8,7 +8,7 @@
 #include <QObject>
 #include <qtmetamacros.h>
 
-namespace service {
+namespace sane_in_the_membrane::service {
     class CGetScannersService : public QObject {
         Q_OBJECT
       public:

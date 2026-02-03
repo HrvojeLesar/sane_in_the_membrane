@@ -2,6 +2,8 @@
 #include "image/MagickImageWrapper.hpp"
 #include <fstream>
 
+using namespace sane_in_the_membrane;
+
 reader::CScanResponseReader::CScanResponseReader(ScannerService::Stub& stub) : m_stub(stub) {}
 reader::CScanResponseReader::~CScanResponseReader() {
     reset_context();

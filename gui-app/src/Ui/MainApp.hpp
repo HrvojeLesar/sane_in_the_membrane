@@ -15,7 +15,7 @@
 #include "../Readers/ScanResponseReader.hpp"
 #include "../Service/ChannelStateChangeService.hpp"
 
-namespace ui {
+namespace sane_in_the_membrane::ui {
     class CMainApp {
       public:
         CMainApp(QApplication& app) : m_app(app) {

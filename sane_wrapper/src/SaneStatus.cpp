@@ -1,5 +1,7 @@
 #include "SaneStatus.hpp"
 
+using namespace sane_in_the_membrane;
+
 sane::CSaneStatus::CSaneStatus(SANE_Status status) : m_status(status) {}
 bool sane::CSaneStatus::is_ok() const {
     return m_status == SANE_STATUS_GOOD;

@@ -11,7 +11,7 @@
 #include "SynchronizedAccess.hpp"
 #include "scanner/v1/scanner.pb.h"
 
-namespace reactor {
+namespace sane_in_the_membrane::reactor {
     using namespace scanner::v1;
     class CScanResponseReactor : public grpc::ServerWriteReactor<ScanResponse> {
       public:
