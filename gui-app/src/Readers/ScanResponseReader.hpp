@@ -1,3 +1,6 @@
+#ifndef READER_SCAN_RESPONSE_READER
+#define READER_SCAN_RESPONSE_READER
+
 #include <grpcpp/client_context.h>
 #include <grpcpp/support/client_callback.h>
 #include <memory>
@@ -9,6 +12,14 @@
 
 namespace sane_in_the_membrane::reader {
     using namespace scanner::v1;
+
+    typedef enum {
+        SANE_FRAME_GRAY,
+        SANE_FRAME_RGB,
+        SANE_FRAME_RED,
+        SANE_FRAME_GREEN,
+        SANE_FRAME_BLUE
+    } SANE_Frame;
 
     struct ScannerParameters {
         ScannerParameters() {}
@@ -38,14 +49,19 @@ namespace sane_in_the_membrane::reader {
 
       signals:
         void sig_done(const grpc::Status& status);
+        void sig_progress(double progress);
 
       private:
         ScannerService::Stub& m_stub;
-        grpc::ClientContext*  m_context;
+        grpc::ClientContext*  m_context{nullptr};
         std::vector<char>     m_byte_data{};
         ScanResponse          m_response{};
         ScannerParameters     m_params{};
+        uint64_t              m_hundred_percent{0};
+        uint64_t              m_total_bytes{0};
     };
 
     inline std::shared_ptr<CScanResponseReader> g_scan_response_reader{nullptr};
 }
+
+#endif // !READER_SCAN_RESPONSE_READER

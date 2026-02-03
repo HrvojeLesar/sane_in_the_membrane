@@ -23,15 +23,22 @@ void reader::CScanResponseReader::OnReadDone(bool ok) {
     if (ok) {
         std::cout << "Read ok\n";
         if (m_response.has_parameters()) {
-            m_params = ScannerParameters(m_response.parameters());
+            m_params          = ScannerParameters(m_response.parameters());
+            m_hundred_percent = ((uint64_t)m_params.bytes_per_line) * m_params.lines * ((m_params.format == SANE_FRAME_RGB || m_params.format == SANE_FRAME_GRAY) ? 1 : 3);
         }
 
         if (m_response.has_data()) {
             const auto& data = m_response.data().raw_bytes();
             m_byte_data.insert(m_byte_data.end(), data.begin(), data.end());
+            m_total_bytes += data.size();
         }
 
         std::cout << "Read from: \n" << m_response.scanner_name() << "\n" << "Size: " << m_response.data().raw_bytes().size() << "\n";
+
+        double progress = ((m_total_bytes * 100.) / (double)m_hundred_percent);
+
+        emit sig_progress(progress);
+
         StartRead(&m_response);
     }
 }
@@ -72,7 +79,9 @@ void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
 
 void reader::CScanResponseReader::reset() {
     reset_context();
-    m_byte_data = std::vector<char>{};
+    m_byte_data       = std::vector<char>{};
+    m_total_bytes     = 0;
+    m_hundred_percent = 0;
 }
 
 void reader::CScanResponseReader::reset_context() {

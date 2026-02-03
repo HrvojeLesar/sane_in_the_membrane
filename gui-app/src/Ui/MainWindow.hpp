@@ -10,11 +10,17 @@
 #include <qformlayout.h>
 #include <qgroupbox.h>
 #include <qmessagebox.h>
+#include <qobject.h>
+#include <qprogressbar.h>
 #include <qwidget.h>
 #include "ScannerSelect.hpp"
 #include "RefreshScanners.hpp"
 #include "ScanButton.hpp"
+#include "ImageView.hpp"
 #include <QMessageBox>
+#include <QProgressBar>
+
+#include "../Readers/ScanResponseReader.hpp"
 
 namespace sane_in_the_membrane::ui {
     class CMainWindow : public QMainWindow {
@@ -27,6 +33,8 @@ namespace sane_in_the_membrane::ui {
             m_form_layout    = new QFormLayout();
             m_refresh_button = new sane_in_the_membrane::ui::CRefreshButton(nullptr);
             m_scanner_select = new ui::CScannerSelect();
+            m_image_view     = new sane_in_the_membrane::ui::CImageView();
+            m_progress_bar   = new QProgressBar();
 
             m_scanner_hbox = new QHBoxLayout();
 
@@ -34,11 +42,19 @@ namespace sane_in_the_membrane::ui {
 
             m_scanner_hbox->addWidget(m_scanner_select);
             m_scanner_hbox->addWidget(m_refresh_button);
+            m_scanner_hbox->addWidget(m_progress_bar);
+
+            m_progress_bar->setMinimum(0);
+            m_progress_bar->setMaximum(100);
+
+            QObject::connect(sane_in_the_membrane::reader::g_scan_response_reader.get(), &sane_in_the_membrane::reader::CScanResponseReader::sig_progress, m_progress_bar,
+                             [this](double progress) { this->m_progress_bar->setValue(progress); });
 
             m_scanner_layout = new QFormLayout();
 
             m_form_layout->addRow(new QLabel("Scan:"), m_scan_button);
             m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
+            m_form_layout->addRow(new QLabel("Image:"), m_image_view);
             m_group_box->setLayout(m_form_layout);
 
             m_main_layout->addWidget(m_group_box);
@@ -80,6 +96,8 @@ namespace sane_in_the_membrane::ui {
         QFormLayout*                              m_scanner_layout{};
         sane_in_the_membrane::ui::CRefreshButton* m_refresh_button{};
         sane_in_the_membrane::ui::CScanButton*    m_scan_button{};
+        sane_in_the_membrane::ui::CImageView*     m_image_view{};
+        QProgressBar*                             m_progress_bar{};
     };
 }
 
