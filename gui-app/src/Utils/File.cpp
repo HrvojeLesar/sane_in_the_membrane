@@ -17,9 +17,14 @@ std::ofstream& CFile::output_stream() {
 
 void CFile::write(const std::string& data) {
     m_ofstream.write(data.data(), data.size());
+    m_size += data.size();
     m_ofstream.flush();
 }
 
 void CFile::write(const std::string&& data) {
     write(data);
+}
+
+size_t CFile::size() const {
+    return m_size;
 }

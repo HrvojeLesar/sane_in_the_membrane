@@ -1,5 +1,6 @@
 #include "ScanResponseReader.hpp"
 #include <atomic>
+#include <memory>
 #include "../Utils/Globals.hpp"
 
 using namespace sane_in_the_membrane;
@@ -17,6 +18,7 @@ void reader::CScanResponseReader::scan(const ScanRequest& request) {
     m_in_progress.store(true, std::memory_order::relaxed);
 
     reset();
+    start_new_file();
     m_context = new grpc::ClientContext();
 
     m_stub.async()->Scan(m_context, &request, this);
@@ -51,29 +53,12 @@ void reader::CScanResponseReader::OnReadDone(bool ok) {
 void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
     std::cout << "All done\n";
 
-    if (s.ok()) {
-        std::cout << "Writing image\n";
-
-        std::cout << "Read from: \n" << m_response.scanner_name() << "\n" << "Size: " << m_response.data().raw_bytes().size() << "\n";
-        std::cout << "Params: "
-                  << "Bytes per line: " << m_params.bytes_per_line << "\n"
-                  << "Pixels per line: " << m_params.pixels_per_line << "\n"
-                  << "Lines: " << m_params.lines << "\n"
-                  << "Depth: " << m_params.depth << "\n"
-                  << "Format: " << m_params.format << "\n"
-                  << "Last frame: " << m_params.last_frame << "\n";
-
-        // sane_in_the_membrane::utils::write_image("scan.png", 1648, 2291, m_byte_data.data());
-        // sane_in_the_membrane::utils::write_image("scan.png", m_params.pixels_per_line, m_params.lines, m_byte_data.data());
-    } else {
-        std::cout << "Not ok\n";
-        std::cout << "Error details: " << s.error_details() << "\n";
-    }
-
     m_in_progress.store(false, std::memory_order::relaxed);
 
     reset();
-    emit sig_done(s);
+    emit sig_done(std::make_shared<grpc::Status>(s), m_current_file, std::make_shared<utils::ScannerParameters>(m_params));
+
+    std::cout << "Done after sig\n";
 }
 
 void reader::CScanResponseReader::reset() {
@@ -85,4 +70,8 @@ void reader::CScanResponseReader::reset() {
 void reader::CScanResponseReader::reset_context() {
     delete m_context;
     m_context = nullptr;
+}
+
+void reader::CScanResponseReader::start_new_file() {
+    m_current_file = utils::Globals::get()->m_file_manager.new_temp_file();
 }

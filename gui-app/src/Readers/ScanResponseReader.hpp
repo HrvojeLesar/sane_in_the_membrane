@@ -28,8 +28,11 @@ namespace sane_in_the_membrane::reader {
         void reset_context();
 
       signals:
-        void sig_done(const grpc::Status& status);
+        void sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
         void sig_progress(double progress);
+
+      private:
+        void start_new_file();
 
       private:
         ScannerService::Stub&         m_stub;

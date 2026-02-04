@@ -17,7 +17,6 @@ namespace sane_in_the_membrane::service {
             OVERRIDE,
         };
 
-
         static const std::expected<std::filesystem::path, std::string> generate_temp_dir();
 
       public:
@@ -26,13 +25,13 @@ namespace sane_in_the_membrane::service {
         CFileManager(std::filesystem::path& temp_dir);
         CFileManager(std::filesystem::path&& temp_dir);
 
-        std::shared_ptr<utils::CFile>                   new_temp_file();
-        void                                            write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data);
-        std::expected<utils::CFile, std::string>        write_file(std::filesystem::path path, std::string& data, CFileManager::EWriteBehaviour override);
-        bool                                            delete_file(std::shared_ptr<utils::CFile>& file);
-
-      private:
-        std::filesystem::path generate_temp_filepath();
+        std::shared_ptr<utils::CFile>            new_temp_file();
+        void                                     write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data);
+        std::expected<utils::CFile, std::string> write_file(std::filesystem::path path, std::string& data, CFileManager::EWriteBehaviour override);
+        bool                                     delete_file(std::shared_ptr<utils::CFile>& file);
+        std::filesystem::path                    generate_temp_filepath();
+        std::filesystem::path                    generate_temp_filepath(const char* extension);
+        std::filesystem::path                    generate_temp_filepath(const std::string& extension);
 
       private:
         std::filesystem::path                      m_temp_dir;

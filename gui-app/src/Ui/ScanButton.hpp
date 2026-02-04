@@ -7,6 +7,8 @@
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qwidget.h>
+#include "../Utils/File.hpp"
+#include "../Utils/ScannerUtils.hpp"
 
 namespace sane_in_the_membrane::ui {
     class CScanButton : public QPushButton {
@@ -16,7 +18,7 @@ namespace sane_in_the_membrane::ui {
 
       private slots:
         void sl_clicked();
-        void sl_sig_done(const grpc::Status& status);
+        void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
         void sl_scanners_changed(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items);
 
       private:

@@ -72,3 +72,11 @@ std::filesystem::path CFileManager::generate_temp_filepath() {
 
     return filepath;
 }
+
+std::filesystem::path CFileManager::generate_temp_filepath(const char* extension) {
+    return generate_temp_filepath().replace_extension(extension);
+}
+
+std::filesystem::path CFileManager::generate_temp_filepath(const std::string& extension) {
+    return generate_temp_filepath(extension.data());
+}

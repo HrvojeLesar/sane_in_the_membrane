@@ -23,7 +23,7 @@ void CScanButton::sl_clicked() {
     m_request.set_scanner_name(scanner_data->scanner_name().toStdString());
     utils::Globals::get()->m_scan_response_reader.scan(m_request);
 }
-void CScanButton::sl_sig_done(const grpc::Status& status, std::shared_ptr<utils::CFile>& file, utils::ScannerParameters& params) {
+void CScanButton::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
     setDisabled(false);
 }
 
