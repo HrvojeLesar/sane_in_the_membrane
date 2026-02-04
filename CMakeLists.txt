@@ -19,6 +19,20 @@ add_subdirectory(utils)
 add_subdirectory(sane_wrapper)
 add_subdirectory(proto_lib)
 
+if (WITH_ASAN)
+    message("Enabled ASAN")
+    add_compile_options(
+        -fsanitize=address
+        -fsanitize=undefined
+        -fsanitize=leak
+    )
+    add_link_options(
+        -fsanitize=address
+        -fsanitize=undefined
+        -fsanitize=leak
+    )
+endif()
+
 if (NOT SKIP_GUI)
     add_subdirectory(gui-app)
 endif()

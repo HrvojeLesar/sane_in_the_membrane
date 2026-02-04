@@ -22,6 +22,10 @@ clean_build_exec:
 debug: cmake_debug build_exec
 .PHONY: debug
 
+debug_asan: CMAKE_EXTRA_FLAGS = -DWITH_ASAN=ON
+debug_asan: cmake_debug build_exec
+.PHONY: debug_asan
+
 debug_skip_gui: CMAKE_EXTRA_FLAGS = -DSKIP_GUI=ON
 debug_skip_gui: debug
 .PHONY: debug_skip_gui
