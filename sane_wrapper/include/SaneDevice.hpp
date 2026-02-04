@@ -34,7 +34,15 @@ namespace sane_in_the_membrane::sane {
         CSaneStatus                   read();
 
         template <std::size_t N>
-        CSaneStatus        read(sane::CSaneDeviceBuffer<N>& buffer);
+        CSaneStatus read(sane::CSaneDeviceBuffer<N>& buffer) {
+            if (m_handle == nullptr || m_current_state != EState::STARTED) {
+                return SANE_STATUS_INVAL;
+            }
+
+            auto status = sane_read(m_handle, buffer.m_data.data(), buffer.m_data.max_size(), &buffer.read_len);
+
+            return status;
+        }
         void               cancel();
         CSaneStatus        set_io_mode(SANE_Bool is_none_blocking);
         SANE_String_Const  str_status(CSaneStatus status);

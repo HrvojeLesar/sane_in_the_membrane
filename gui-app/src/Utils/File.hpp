@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 namespace sane_in_the_membrane::utils {
     class CFile {
@@ -15,11 +16,14 @@ namespace sane_in_the_membrane::utils {
         CFile(const CFile& other) = delete;
         CFile(CFile&& other);
 
-        std::filesystem::path& path();
-        std::ofstream&         output_stream();
-        void                   write(const std::string& data);
-        void                   write(const std::string&& data);
-        size_t                 size() const;
+        const std::filesystem::path& path() const;
+        void                         write(const std::string& data);
+        void                         write(const std::string&& data);
+        size_t                       size() const;
+        std::vector<char>            read() const;
+
+      private:
+        const std::ofstream& output_stream() const;
 
       private:
         std::filesystem::path m_path;

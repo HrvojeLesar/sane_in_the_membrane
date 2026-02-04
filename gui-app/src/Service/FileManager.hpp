@@ -26,9 +26,11 @@ namespace sane_in_the_membrane::service {
         CFileManager(std::filesystem::path&& temp_dir);
 
         std::shared_ptr<utils::CFile>            new_temp_file();
+        std::shared_ptr<utils::CFile>            new_temp_file_with_extension(const char* extension);
+        std::shared_ptr<utils::CFile>            new_temp_file_with_extension(const std::string& extension);
         void                                     write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data);
         std::expected<utils::CFile, std::string> write_file(std::filesystem::path path, std::string& data, CFileManager::EWriteBehaviour override);
-        bool                                     delete_file(std::shared_ptr<utils::CFile>& file);
+        bool                                     delete_file(const std::shared_ptr<utils::CFile>& file);
         std::filesystem::path                    generate_temp_filepath();
         std::filesystem::path                    generate_temp_filepath(const char* extension);
         std::filesystem::path                    generate_temp_filepath(const std::string& extension);

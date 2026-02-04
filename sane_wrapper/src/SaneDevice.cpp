@@ -84,17 +84,6 @@ sane::CSaneStatus sane::CSaneDevice::read() {
     return read(m_buffer);
 }
 
-template <std::size_t N>
-sane::CSaneStatus sane::CSaneDevice::read(sane::CSaneDeviceBuffer<N>& buffer) {
-    if (m_handle == nullptr || m_current_state != EState::STARTED) {
-        return SANE_STATUS_INVAL;
-    }
-
-    auto status = sane_read(m_handle, buffer.m_data.data(), buffer.m_data.max_size(), &buffer.read_len);
-
-    return status;
-}
-
 void sane::CSaneDevice::cancel() {
     auto old_state  = m_current_state;
     m_current_state = EState::CANCELLING;

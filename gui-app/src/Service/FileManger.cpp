@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <format>
 #include <memory>
-#include <ranges>
 #include <string>
 #include "../Utils/File.hpp"
 
@@ -31,11 +30,23 @@ std::shared_ptr<sane_in_the_membrane::utils::CFile> CFileManager::new_temp_file(
     return m_managed_temp_files.back();
 }
 
+std::shared_ptr<sane_in_the_membrane::utils::CFile> CFileManager::new_temp_file_with_extension(const char* extension) {
+    m_managed_temp_files.emplace_back(std::make_shared<sane_in_the_membrane::utils::CFile>(generate_temp_filepath(extension)));
+
+    return m_managed_temp_files.back();
+}
+
+std::shared_ptr<sane_in_the_membrane::utils::CFile> CFileManager::new_temp_file_with_extension(const std::string& extension) {
+    m_managed_temp_files.emplace_back(std::make_shared<sane_in_the_membrane::utils::CFile>(generate_temp_filepath(extension)));
+
+    return m_managed_temp_files.back();
+}
+
 void CFileManager::write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data) {
     file->write(data);
 }
 
-bool CFileManager::delete_file(std::shared_ptr<utils::CFile>& file) {
+bool CFileManager::delete_file(const std::shared_ptr<utils::CFile>& file) {
     if (!std::filesystem::exists(file->path()) || !std::filesystem::is_regular_file(file->path())) {
         return false;
     }
@@ -45,8 +56,7 @@ bool CFileManager::delete_file(std::shared_ptr<utils::CFile>& file) {
         return false;
     }
 
-    m_managed_temp_files = m_managed_temp_files | std::ranges::views::filter([&file](const std::shared_ptr<utils::CFile>& other_file) { return file != other_file; }) |
-        std::ranges::to<std::vector<std::shared_ptr<utils::CFile>>>();
+    m_managed_temp_files.erase(std::remove(m_managed_temp_files.begin(), m_managed_temp_files.end(), file), m_managed_temp_files.end());
 
     return true;
 }

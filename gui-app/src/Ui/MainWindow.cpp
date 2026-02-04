@@ -1,15 +1,11 @@
 #include "MainWindow.hpp"
 #include "../Readers/ScanResponseReader.hpp"
 #include "../Utils/Globals.hpp"
-#include "image/MagickImageWrapper.hpp"
-#include <fstream>
-#include <iostream>
+#include "ImageView.hpp"
 
 using namespace sane_in_the_membrane::ui;
 
 CMainWindow::CMainWindow() {
-    QObject::connect(&utils::Globals::get()->m_scan_response_reader, &reader::CScanResponseReader::sig_done, this, &CMainWindow::sl_sig_done);
-
     m_central_widget = new QWidget(this);
     m_main_layout    = new QVBoxLayout();
     m_group_box      = new QGroupBox();
@@ -32,11 +28,9 @@ CMainWindow::CMainWindow() {
     m_progress_bar->setMinimum(0);
     m_progress_bar->setMaximum(100);
 
-    m_scanner_layout = new QFormLayout();
-
     m_form_layout->addRow(new QLabel("Scan:"), m_scan_button);
     m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
-    // m_form_layout->addRow(new QLabel("Image:"), m_image_view);
+    m_form_layout->addRow(new QLabel("Pages:"), m_image_view);
     m_group_box->setLayout(m_form_layout);
 
     m_main_layout->addWidget(m_group_box);
@@ -64,23 +58,4 @@ void CMainWindow::closeEvent(QCloseEvent* event) {
         case QMessageBox::Cancel:
         default: event->ignore(); break;
     }
-}
-void CMainWindow::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
-    if (!status->ok()) {
-        return;
-    }
-
-    if (static_cast<size_t>(params->pixels_per_line * params->lines) > file->size()) {
-        std::cout << "File size does not correspond to params\n";
-        return;
-    }
-
-    std::ifstream     infile(file->path(), std::ios::binary);
-    std::vector<char> data{std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
-    infile.close();
-
-    auto path = utils::Globals::get()->m_file_manager.generate_temp_filepath(".png");
-    sane_in_the_membrane::utils::write_image(path, params->pixels_per_line, params->lines, data.data());
-    auto img = new sane_in_the_membrane::ui::CImageView(path);
-    m_form_layout->addRow(new QLabel("Images:"), img);
 }

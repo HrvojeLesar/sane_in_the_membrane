@@ -24,6 +24,9 @@ void CScanButton::sl_clicked() {
     utils::Globals::get()->m_scan_response_reader.scan(m_request);
 }
 void CScanButton::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
+    if (!status->ok()) {
+        std::cout << "Scan failed\n";
+    }
     setDisabled(false);
 }
 

@@ -32,9 +32,6 @@ namespace sane_in_the_membrane::ui {
 
         void closeEvent(QCloseEvent* event) override; 
 
-      private slots:
-        void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
-
       private:
         QWidget*                                  m_central_widget{};
         QVBoxLayout*                              m_main_layout{};
@@ -43,7 +40,6 @@ namespace sane_in_the_membrane::ui {
 
         ui::CScannerSelect*                       m_scanner_select{};
         QHBoxLayout*                              m_scanner_hbox{};
-        QFormLayout*                              m_scanner_layout{};
         sane_in_the_membrane::ui::CRefreshButton* m_refresh_button{};
         sane_in_the_membrane::ui::CScanButton*    m_scan_button{};
         sane_in_the_membrane::ui::CImageView*     m_image_view{};
