@@ -1,6 +1,7 @@
 #ifndef SCANNER_SERVICE_HEADER
 #define SCANNER_SERVICE_HEADER
 
+#include "Sane.hpp"
 #include "SaneDevice.hpp"
 #include "scanner/v1/scanner.grpc.pb.h"
 #include "scanner/v1/scanner.pb.h"
@@ -27,8 +28,8 @@ namespace sane_in_the_membrane::service {
 
       private:
         UniqueAccess<std::vector<std::weak_ptr<sane::CSaneDevice>>>      m_devices{};
-
         UniqueAccess<std::chrono::time_point<std::chrono::system_clock>> m_last_device_fetch{};
+        sane::CSane                                                      m_sane{};
     };
 }
 

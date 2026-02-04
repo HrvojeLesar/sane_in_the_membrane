@@ -34,8 +34,6 @@ namespace sane_in_the_membrane::sane {
         std::vector<std::weak_ptr<CSaneDevice>>   m_devices_weak{};
         std::optional<CSaneStatus>                m_initialization_status{};
     };
-
-    inline std::unique_ptr<CSane> g_sane = std::make_unique<CSane>();
 }
 
 #endif // !SANE_IN_THE_MEMBRANE
