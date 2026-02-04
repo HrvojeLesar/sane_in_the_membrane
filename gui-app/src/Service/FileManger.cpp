@@ -10,18 +10,9 @@
 
 using namespace sane_in_the_membrane::service;
 
+CFileManager::CFileManager() : m_temp_dir(CFileManager::generate_temp_dir().value()) {}
 CFileManager::CFileManager(std::filesystem::path& temp_dir) : m_temp_dir(temp_dir) {}
 CFileManager::CFileManager(std::filesystem::path&& temp_dir) : m_temp_dir(std::move(temp_dir)) {}
-
-std::expected<CFileManager, std::string> CFileManager::new_instance() {
-    auto temp_dir = CFileManager::generate_temp_dir();
-
-    if (!temp_dir.has_value()) {
-        return std::unexpected<std::string>{std::move(temp_dir).error()};
-    }
-
-    return CFileManager{std::move(temp_dir).value()};
-}
 
 std::expected<sane_in_the_membrane::utils::CFile, std::string> CFileManager::write_file(std::filesystem::path path, std::string& data, CFileManager::EWriteBehaviour override) {
     if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path) && override != CFileManager::EWriteBehaviour::OVERRIDE) {

@@ -9,6 +9,8 @@
 #include <qtmetamacros.h>
 #include <vector>
 
+#include "GetScannersService.hpp"
+
 #include "SynchronizedAccess.hpp"
 
 namespace sane_in_the_membrane::service {
@@ -39,7 +41,7 @@ namespace sane_in_the_membrane::service {
     class CDeviceList : public QObject {
         Q_OBJECT
       public:
-        CDeviceList();
+        CDeviceList(service::CGetScannersService& get_scanner_service);
         ~CDeviceList();
 
         void                                                                add_scanner_item(const CScannerItem scanner_item);
@@ -59,9 +61,8 @@ namespace sane_in_the_membrane::service {
 
       private:
         UniqueAccess<std::vector<std::shared_ptr<CScannerItem>>> m_scanners{};
+        service::CGetScannersService&                            m_get_scanner_service;
     };
-
-    inline std::unique_ptr<CDeviceList> g_device_list{nullptr};
 }
 
 #endif // !SERVICE_DEVICE_LIST

@@ -15,11 +15,11 @@ std::ofstream& CFile::output_stream() {
     return m_ofstream;
 }
 
-void CFile::write(std::string& data) {
+void CFile::write(const std::string& data) {
     m_ofstream.write(data.data(), data.size());
     m_ofstream.flush();
 }
 
-void CFile::write(std::string&& data) {
+void CFile::write(const std::string&& data) {
     write(data);
 }

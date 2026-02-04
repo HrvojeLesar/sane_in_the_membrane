@@ -16,8 +16,8 @@ namespace sane_in_the_membrane::utils {
 
         std::filesystem::path& path();
         std::ofstream&         output_stream();
-        void                   write(std::string& data);
-        void                   write(std::string&& data);
+        void                   write(const std::string& data);
+        void                   write(const std::string&& data);
 
       private:
         std::filesystem::path m_path;

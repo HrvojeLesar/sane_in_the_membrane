@@ -23,8 +23,6 @@ namespace sane_in_the_membrane::service {
       private:
         scanner::v1::ScannerService::Stub& m_stub;
     };
-
-    inline std::unique_ptr<CGetScannersService> g_get_scanner_service{nullptr};
 }
 
 #endif // !SERVICE_GET_SCANNERS_SERVICE

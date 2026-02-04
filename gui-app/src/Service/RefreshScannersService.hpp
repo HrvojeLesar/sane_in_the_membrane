@@ -22,8 +22,6 @@ namespace sane_in_the_membrane::service {
       private:
         scanner::v1::ScannerService::Stub& m_stub;
     };
-
-    inline std::unique_ptr<CRefreshScannersService> g_refresh_scanner_service{nullptr};
 }
 
 #endif // !SERVICE_REFRESH_SCANNERS_SERVICE

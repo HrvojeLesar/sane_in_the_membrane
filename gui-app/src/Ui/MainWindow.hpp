@@ -20,9 +20,8 @@
 #include <QMessageBox>
 #include <QProgressBar>
 
-#include "../Readers/ScanResponseReader.hpp"
-
 namespace sane_in_the_membrane::ui {
+
     class CMainWindow : public QMainWindow {
       public:
         CMainWindow() {
@@ -46,9 +45,6 @@ namespace sane_in_the_membrane::ui {
 
             m_progress_bar->setMinimum(0);
             m_progress_bar->setMaximum(100);
-
-            QObject::connect(sane_in_the_membrane::reader::g_scan_response_reader.get(), &sane_in_the_membrane::reader::CScanResponseReader::sig_progress, m_progress_bar,
-                             [this](double progress) { this->m_progress_bar->setValue(progress); });
 
             m_scanner_layout = new QFormLayout();
 

@@ -17,13 +17,14 @@ namespace sane_in_the_membrane::service {
             OVERRIDE,
         };
 
-        CFileManager(std::filesystem::path& temp_dir);
-        CFileManager(std::filesystem::path&& temp_dir);
 
         static const std::expected<std::filesystem::path, std::string> generate_temp_dir();
 
       public:
-        static std::expected<CFileManager, std::string> new_instance();
+        // WARN: Constructor will fail if temp filesystem is not available to the program
+        CFileManager();
+        CFileManager(std::filesystem::path& temp_dir);
+        CFileManager(std::filesystem::path&& temp_dir);
 
         std::shared_ptr<utils::CFile>                   new_temp_file();
         void                                            write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data);

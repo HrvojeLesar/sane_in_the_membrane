@@ -1,39 +1,19 @@
 #ifndef READER_SCAN_RESPONSE_READER
 #define READER_SCAN_RESPONSE_READER
 
+#include <atomic>
 #include <grpcpp/client_context.h>
 #include <grpcpp/support/client_callback.h>
 #include <memory>
 #include <qobject.h>
 #include <qtmetamacros.h>
 #include <scanner/v1/scanner.pb.h>
-#include <vector>
 #include "scanner/v1/scanner.grpc.pb.h"
+#include "../Utils/ScannerUtils.hpp"
+#include "../Utils/File.hpp"
 
 namespace sane_in_the_membrane::reader {
     using namespace scanner::v1;
-
-    typedef enum {
-        SANE_FRAME_GRAY,
-        SANE_FRAME_RGB,
-        SANE_FRAME_RED,
-        SANE_FRAME_GREEN,
-        SANE_FRAME_BLUE
-    } SANE_Frame;
-
-    struct ScannerParameters {
-        ScannerParameters() {}
-        ScannerParameters(const ScanParameters& scan) :
-            format(scan.format()), last_frame(scan.last_frame()), bytes_per_line(scan.bytes_per_line()), pixels_per_line(scan.pixels_per_line()), lines(scan.lines()),
-            depth(scan.depth()) {}
-
-        int64_t format;
-        bool    last_frame;
-        int64_t bytes_per_line;
-        int64_t pixels_per_line;
-        int64_t lines;
-        int64_t depth;
-    };
 
     class CScanResponseReader : public QObject, public grpc::ClientReadReactor<scanner::v1::ScanResponse> {
         Q_OBJECT
@@ -52,16 +32,15 @@ namespace sane_in_the_membrane::reader {
         void sig_progress(double progress);
 
       private:
-        ScannerService::Stub& m_stub;
-        grpc::ClientContext*  m_context{nullptr};
-        std::vector<char>     m_byte_data{};
-        ScanResponse          m_response{};
-        ScannerParameters     m_params{};
-        uint64_t              m_hundred_percent{0};
-        uint64_t              m_total_bytes{0};
+        ScannerService::Stub&         m_stub;
+        grpc::ClientContext*          m_context{nullptr};
+        ScanResponse                  m_response{};
+        utils::ScannerParameters      m_params{};
+        uint64_t                      m_hundred_percent{0};
+        uint64_t                      m_total_bytes{0};
+        std::atomic<bool>             m_in_progress{false};
+        std::shared_ptr<utils::CFile> m_current_file{nullptr};
     };
-
-    inline std::shared_ptr<CScanResponseReader> g_scan_response_reader{nullptr};
 }
 
 #endif // !READER_SCAN_RESPONSE_READER

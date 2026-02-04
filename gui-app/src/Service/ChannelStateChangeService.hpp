@@ -53,8 +53,6 @@ namespace sane_in_the_membrane::service {
         std::atomic<bool>                  m_started{false};
         utils::UniqueAccess<CChannelState> m_state{};
     };
-
-    inline std::unique_ptr<CChangeStateWatcher> g_state_change_watcher{nullptr};
 }
 
 #endif // !SERVICE_CHANNEL_STATE_CHANGE_SERVICE
