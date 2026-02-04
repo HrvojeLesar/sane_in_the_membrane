@@ -2,8 +2,31 @@ cmake_minimum_required(VERSION 3.12)
 
 project(generated_protobufs C CXX)
 
-find_package(gRPC CONFIG REQUIRED)
-find_package(Protobuf REQUIRED)
+if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
+    find_package(gRPC CONFIG REQUIRED)
+    find_package(Protobuf REQUIRED)
+else()
+
+    set(protobuf_INSTALL OFF CACHE BOOL "Disable protobuf installation" FORCE)
+    set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+    set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "Disable abseil installation" FORCE)
+    set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        gRPC
+        GIT_REPOSITORY https://github.com/grpc/grpc
+        GIT_TAG        v1.78.0
+    )
+    set(FETCHCONTENT_QUIET OFF)
+
+    set(gRPC_BUILD_TESTS OFF)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
+    FetchContent_MakeAvailable(gRPC)
+endif()
 
 file(GLOB_RECURSE PROTO_FILES
     "../proto/*.proto"
@@ -14,57 +37,48 @@ if(NOT PROTO_FILES)
     message(FATAL_ERROR "No .proto files found in proto/ folder!")
 endif()
 
-# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+if (NOT (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC))
+    include(${grpc_SOURCE_DIR}/third_party/protobuf/cmake/protobuf-generate.cmake)
+endif()
 
-function(grpc_generate_cpp SRCS HDRS)
-    set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../proto")
-    set(${SRCS})
-    set(${HDRS})
-    foreach(FIL ${ARGN})
-        get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
-        file(RELATIVE_PATH REL_FIL ${PROTO_DIR} ${ABS_FIL})
-        get_filename_component(FIL_WE ${FIL} NAME_WE)
-        string(REPLACE ".proto" ".grpc.pb.cc" GRPC_CC ${REL_FIL})
-        string(REPLACE ".proto" ".grpc.pb.h" GRPC_H ${REL_FIL})
-        string(REPLACE ".proto" ".pb.cc" PB_CC ${REL_FIL})
-        string(REPLACE ".proto" ".pb.h" PB_H ${REL_FIL})
-        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_CC}")
-        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_H}")
-        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${PB_CC}")
-        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${PB_H}")
-        add_custom_command(
-            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_CC}"
-                   "${CMAKE_CURRENT_BINARY_DIR}/${GRPC_H}"
-                   "${CMAKE_CURRENT_BINARY_DIR}/${PB_CC}"
-                   "${CMAKE_CURRENT_BINARY_DIR}/${PB_H}"
-            COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-            ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
-                 --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-                 --plugin=protoc-gen-grpc=$<TARGET_FILE:gRPC::grpc_cpp_plugin>
-                 -I ${PROTO_DIR} ${REL_FIL}
-            DEPENDS ${ABS_FIL}
-            WORKING_DIRECTORY ${PROTO_DIR}
-            COMMENT "Generating gRPC C++ code for ${FIL}"
-            VERBATIM
-        )
-    endforeach()
-    set(${SRCS} ${${SRCS}} PARENT_SCOPE)
-    set(${HDRS} ${${HDRS}} PARENT_SCOPE)
-endfunction()
+add_library(generated_protobufs OBJECT ${PROTO_FILES})
 
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_FILES})
+if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
+    target_link_libraries(generated_protobufs PUBLIC
+        protobuf::libprotobuf
+        gRPC::grpc++
+    )
+else()
+    target_link_libraries(generated_protobufs PUBLIC
+        protobuf::libprotobuf
+        grpc++
+    )
+endif()
 
-add_library(generated_protobufs STATIC
-    ${GRPC_SRCS}
-    ${GRPC_HDRS}
-)
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(PROTO_IMPORT_DIRS "../proto")
 
-target_link_libraries(generated_protobufs PUBLIC
-    protobuf::libprotobuf
-    gRPC::grpc++
-)
+target_include_directories(generated_protobufs PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 
-target_include_directories(generated_protobufs PUBLIC
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../proto
-)
+protobuf_generate(
+    TARGET generated_protobufs
+    IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    protobuf_generate(
+        TARGET generated_protobufs
+        LANGUAGE grpc
+        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
+        PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:gRPC::grpc_cpp_plugin>"
+        IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+        PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
+else()
+    protobuf_generate(
+        TARGET generated_protobufs
+        LANGUAGE grpc
+        GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
+        PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:grpc_cpp_plugin>"
+        IMPORT_DIRS ${PROTO_IMPORT_DIRS}
+        PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
+endif()
