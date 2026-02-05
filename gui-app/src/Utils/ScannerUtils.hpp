@@ -25,6 +25,14 @@ namespace sane_in_the_membrane::utils {
         int64_t pixels_per_line;
         int64_t lines;
         int64_t depth;
+
+        int64_t width() {
+            return pixels_per_line;
+        }
+
+        int64_t height() {
+            return lines;
+        }
     };
 
 }
