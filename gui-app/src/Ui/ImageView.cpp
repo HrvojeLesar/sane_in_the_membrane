@@ -1,6 +1,7 @@
 #include "ImageView.hpp"
 #include <memory>
 #include <qboxlayout.h>
+#include <qforeach.h>
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
@@ -8,8 +9,12 @@
 #include <qwidget.h>
 #include "../Utils/Globals.hpp"
 #include <image/MagickImageWrapper.hpp>
+#include <QFileDialog>
+#include <string>
+#include "../Utils/Pdf/Pdf.hpp"
 
 using namespace sane_in_the_membrane::ui;
+using namespace sane_in_the_membrane::utils::pdf;
 
 CImageItem::~CImageItem() {}
 CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, QWidget* parent) :
@@ -33,6 +38,9 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, QWidget* parent) :
 
     connect(m_close_button, &QPushButton::clicked, this, &CImageItem::sl_remove_me);
 }
+std::shared_ptr<sane_in_the_membrane::utils::CFile> CImageItem::file() {
+    return m_file;
+}
 
 void CImageItem::sl_remove_me() {
     emit sig_remove_requested();
@@ -52,13 +60,35 @@ void CImageItem::resizeEvent(QResizeEvent* event) {
 }
 
 CImageView::CImageView(std::string filepath, QWidget* parent) :
-    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new QScrollArea(this)) {
+    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new QScrollArea(this)),
+    m_save(new QPushButton("Save", this)) {
     QObject::connect(&utils::Globals::get()->m_scan_response_reader, &reader::CScanResponseReader::sig_done, this, &CImageView::sl_sig_done);
 
     m_scroll->setWidgetResizable(true);
     m_scroll->setWidget(m_image_container);
 
+    m_main_layout->addWidget(m_save);
     m_main_layout->addWidget(m_scroll);
+
+    connect(m_save, &QPushButton::clicked, this, [this]() {
+        auto filename = QFileDialog::getSaveFileName(this, "Save pdf");
+        if (filename.isEmpty()) {
+            std::cout << "Empty, exiting\n";
+            return;
+        }
+
+        sane_in_the_membrane::utils::pdf::CPdfBuilder builder{};
+        builder.set_error_handler(sane_in_the_membrane::utils::pdf::CPdf::error_handler);
+        builder.set_compression_mode(HPDF_COMP_ALL);
+        auto pdf = builder.build();
+
+        for (const auto& item : m_items) {
+            const auto file = item->file();
+            pdf.add_jpeg(file->path());
+        }
+
+        pdf.save(filename.toStdString());
+    });
 }
 
 void CImageView::add_image(std::shared_ptr<utils::CFile> file) {
@@ -84,8 +114,8 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
         return;
     }
 
-    auto image_file = utils::Globals::get()->m_file_manager.new_temp_file_with_extension(".png");
-    sane_in_the_membrane::utils::write_image(image_file->path(), params->pixels_per_line, params->lines, file->read().data());
+    auto image_file = utils::Globals::get()->m_file_manager.new_temp_file_with_extension(".jpg");
+    sane_in_the_membrane::utils::write_image(image_file->path(), params->pixels_per_line, params->lines, file->read().data(), IMAGE_QUALITY);
 
     add_image(image_file);
 }

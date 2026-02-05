@@ -10,3 +10,12 @@ void sane_in_the_membrane::utils::write_image(const std::string& path, const int
 
     write_image(image, path);
 }
+
+void sane_in_the_membrane::utils::write_image(const std::string& path, const int width, const int height, const void* data, const size_t quailty) {
+    Magick::Image image{};
+    image.read(width, height, "RGB", Magick::StorageType::CharPixel, data);
+
+    image.quality(quailty);
+
+    write_image(image, path);
+}

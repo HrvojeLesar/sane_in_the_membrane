@@ -8,7 +8,7 @@ namespace sane_in_the_membrane::utils {
 
     void write_image(Magick::Image& image, const std::string& path);
     void write_image(const std::string& path, const int width, const int height, const void* data);
-
+    void write_image(const std::string& path, const int width, const int height, const void* data, const size_t quailty);
 }
 
 #endif // !IMAGE_MAGICK_IMAGE_WRAPPER_HPP

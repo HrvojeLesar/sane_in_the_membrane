@@ -1,6 +1,7 @@
 #ifndef UI_IMAGE_VIEW
 #define UI_IMAGE_VIEW
 
+#include <cstddef>
 #include <grpcpp/support/status.h>
 #include <memory>
 #include <qboxlayout.h>
@@ -27,6 +28,8 @@ namespace sane_in_the_membrane::ui {
         CImageItem(std::shared_ptr<utils::CFile> file, QWidget* parent = nullptr);
         ~CImageItem();
 
+        std::shared_ptr<utils::CFile> file();
+
       signals:
         void sig_remove_requested();
 
@@ -47,6 +50,10 @@ namespace sane_in_the_membrane::ui {
 
     class CImageView : public QWidget {
         Q_OBJECT
+
+      private:
+        const size_t IMAGE_QUALITY = 85;
+
       public:
         explicit CImageView(std::string filepath = "", QWidget* parent = nullptr);
         void add_image(std::shared_ptr<utils::CFile> file);
@@ -59,6 +66,7 @@ namespace sane_in_the_membrane::ui {
         QWidget* const           m_image_container;
         QHBoxLayout* const       m_grid;
         QScrollArea* const       m_scroll;
+        QPushButton* const       m_save;
 
         std::vector<CImageItem*> m_items{};
     };
