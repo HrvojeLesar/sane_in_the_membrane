@@ -6,7 +6,6 @@ if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
     find_package(gRPC CONFIG REQUIRED)
     find_package(Protobuf REQUIRED)
 else()
-
     set(protobuf_INSTALL OFF CACHE BOOL "Disable protobuf installation" FORCE)
     set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -26,6 +25,9 @@ else()
     set(gRPC_BUILD_TESTS OFF)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
     FetchContent_MakeAvailable(gRPC)
+    if(NOT TARGET gRPC::grpc++)
+        add_library(gRPC::grpc++ ALIAS grpc++)
+    endif()
 endif()
 
 file(GLOB_RECURSE PROTO_FILES
@@ -43,17 +45,10 @@ endif()
 
 add_library(generated_protobufs OBJECT ${PROTO_FILES})
 
-if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
-    target_link_libraries(generated_protobufs PUBLIC
-        protobuf::libprotobuf
-        gRPC::grpc++
-    )
-else()
-    target_link_libraries(generated_protobufs PUBLIC
-        protobuf::libprotobuf
-        grpc++
-    )
-endif()
+target_link_libraries(generated_protobufs PUBLIC
+    protobuf::libprotobuf
+    gRPC::grpc++
+)
 
 set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(PROTO_IMPORT_DIRS "../proto")
@@ -65,7 +60,7 @@ protobuf_generate(
     IMPORT_DIRS ${PROTO_IMPORT_DIRS}
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
 
-if (CMAKE_BUILD_TYPE MATCHES Debug)
+if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
     protobuf_generate(
         TARGET generated_protobufs
         LANGUAGE grpc
