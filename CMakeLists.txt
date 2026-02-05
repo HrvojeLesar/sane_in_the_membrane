@@ -7,6 +7,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+OPTION(WITH_ASAN "Compiles binary with asan" OFF)
+OPTION(BUILD_GUI "Builds gui executable" ON)
+OPTION(BUILD_SERVER "Builds server executable" ON)
+
 if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES DEBUG)
     message(STATUS "CMake DEBUG mode")
     if (WITH_ASAN)
@@ -37,13 +41,13 @@ add_compile_options(
     -Wno-narrowing)
 
 add_subdirectory(utils)
-add_subdirectory(sane_wrapper)
 add_subdirectory(proto_lib)
 
-if (NOT SKIP_GUI)
+if(BUILD_GUI)
     add_subdirectory(gui-app)
 endif()
 
-if (NOT SKIP_SERVER)
+if(BUILD_SERVER AND NOT (WIN32 OR MINGW))
+    add_subdirectory(sane_wrapper)
     add_subdirectory(server)
 endif()

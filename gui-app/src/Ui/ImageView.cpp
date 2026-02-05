@@ -4,14 +4,16 @@
 #include <qforeach.h>
 #include <qimage.h>
 #include <qnamespace.h>
+#include <qobject.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
 #include <qwidget.h>
 #include "../Utils/Globals.hpp"
-#include <image/MagickImageWrapper.hpp>
 #include <QFileDialog>
 #include <string>
 #include "../Utils/Pdf/Pdf.hpp"
+#include <QImage>
+#include <QBuffer>
 
 using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::utils::pdf;
@@ -114,8 +116,11 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
         return;
     }
 
-    auto image_file = utils::Globals::get()->m_file_manager.new_temp_file_with_extension(".jpg");
-    sane_in_the_membrane::utils::write_image(image_file->path(), params->pixels_per_line, params->lines, file->read().data(), IMAGE_QUALITY);
+    auto   image_file = utils::Globals::get()->m_file_manager.new_temp_file_with_extension(".jpg");
+    auto   file_data  = file->read();
+
+    QImage img{file_data.data(), params->width(), params->height(), params->bytes_per_line, QImage::Format::Format_RGB888};
+    img.save(image_file->path().c_str(), "jpg");
 
     add_image(image_file);
 }

@@ -31,9 +31,9 @@ size_t CFile::size() const {
     return m_size;
 }
 
-std::vector<char> CFile::read() const {
-    std::ifstream     infile(path(), std::ios::binary);
-    std::vector<char> data{std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
+std::vector<unsigned char> CFile::read() const {
+    std::ifstream              infile(path(), std::ios::binary);
+    std::vector<unsigned char> data{std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
     infile.close();
 
     return data;

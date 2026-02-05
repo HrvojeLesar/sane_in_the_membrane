@@ -20,7 +20,7 @@ namespace sane_in_the_membrane::utils {
         void                         write(const std::string& data);
         void                         write(const std::string&& data);
         size_t                       size() const;
-        std::vector<char>            read() const;
+        std::vector<unsigned char>   read() const;
 
       private:
         const std::ofstream& output_stream() const;
