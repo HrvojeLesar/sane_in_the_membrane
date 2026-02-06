@@ -4,8 +4,8 @@
 
 using namespace sane_in_the_membrane::utils;
 
-CFile::CFile(std::filesystem::path& path) : m_path(path), m_ofstream(m_path, std::ios::out | std::ios::binary) {}
-CFile::CFile(std::filesystem::path&& path) : m_path(std::move(path)), m_ofstream(m_path, std::ios::out | std::ios::binary) {}
+CFile::CFile(std::filesystem::path& path) : m_path(path), m_ofstream(m_path, std::ios::out | std::ios::binary | std::ios::app) {}
+CFile::CFile(std::filesystem::path&& path) : m_path(std::move(path)), m_ofstream(m_path, std::ios::out | std::ios::binary | std::ios::app) {}
 
 CFile::CFile(CFile&& other) : m_path(std::move(other.m_path)), m_ofstream(std::move(other.m_ofstream)) {}
 
