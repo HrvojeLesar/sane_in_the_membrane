@@ -12,8 +12,10 @@
 #include <QFileDialog>
 #include <string>
 #include "../Utils/Pdf/Pdf.hpp"
+#include "Image/ImageToolbar.hpp"
 #include <QImage>
 #include <QBuffer>
+#include <QTransform>
 
 using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::utils::pdf;
@@ -37,6 +39,7 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, QWidget* parent) :
     m_close_button->raise();
 
     m_layout->addWidget(m_image_label);
+    m_layout->addWidget(new image::CImageToolbar{});
 
     connect(m_close_button, &QPushButton::clicked, this, &CImageItem::sl_remove_me);
 }
@@ -50,8 +53,11 @@ void CImageItem::sl_remove_me() {
 
 void CImageItem::set_pixmap() {
     m_image_label->setMaximumSize(720, 1280);
+    constexpr int MAX_W = 640;
+    constexpr int MAX_H = 640;
+
     if (!m_pixmap.isNull()) {
-        m_image_label->setPixmap(m_pixmap.scaled(720, 1280, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        m_image_label->setPixmap(m_pixmap.transformed(transform, Qt::SmoothTransformation).scaled(MAX_W, MAX_H, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     } else {
         m_image_label->setText("Preview failed");
     }
