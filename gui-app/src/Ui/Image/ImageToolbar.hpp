@@ -5,13 +5,17 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QStyle>
+#include <qlabel.h>
 
 namespace sane_in_the_membrane::ui::image {
     class CImageToolbar : public QWidget {
         Q_OBJECT
 
       public:
-        CImageToolbar(QWidget* parent = nullptr);
+        CImageToolbar(uint32_t page_number, QWidget* parent = nullptr);
+
+      public:
+        void set_page_number(uint32_t page_number);
 
       public:
         QPushButton* const m_btn_move_next;
@@ -20,6 +24,7 @@ namespace sane_in_the_membrane::ui::image {
         QPushButton* const m_btn_rotate_right;
         QPushButton* const m_btn_mirror;
         QPushButton* const m_btn_delete;
+        QLabel* const      m_page_number;
     };
 
 }
