@@ -202,7 +202,7 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     auto   image_file = utils::Globals::get()->m_file_manager.new_temp_file_with_extension(".jpg");
     auto   file_data  = file->read();
 
-    QImage img{file_data.data(), params->width(), params->height(), params->bytes_per_line, QImage::Format::Format_RGB888};
+    QImage img{file_data.data(), static_cast<int>(params->width()), static_cast<int>(params->height()), params->bytes_per_line, QImage::Format::Format_RGB888};
     img.save(image_file->path().c_str(), "jpg");
 
     add_image(image_file);

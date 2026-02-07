@@ -58,10 +58,6 @@ std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::get_devices(SANE_Bool
     return m_devices_weak;
 }
 
-const std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::peek_devices(SANE_Bool local_only) {
-    return m_devices_weak;
-}
-
 std::optional<sane::CSaneStatus> sane::CSane::get_status() const {
     return m_initialization_status;
 }

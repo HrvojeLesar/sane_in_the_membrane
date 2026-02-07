@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 4.2)
 
 project(sane_in_the_membrane)
 
@@ -19,3 +19,4 @@ target_link_libraries(sane_in_the_membrane_lib
         PkgConfig::SANE
 )
 
+target_compile_options(sane_in_the_membrane_lib PRIVATE ${COMPILER_WARNING_FLAGS})

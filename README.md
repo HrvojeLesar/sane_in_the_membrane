@@ -22,8 +22,8 @@ Client supports previewing scans and exporting scanned pages into a pdf document
 Features, tasks and ideas to do in no particular order:
 
 - [ ] Make UI nicer
-- [ ] Reorder displayed pages
-- [ ] Rotate pages
+- [x] Reorder displayed pages
+- [x] Rotate pages
 - [ ] Export in different formats (e.g. export only images)
 - [ ] Compress packets
 - [ ] Automatic server discovery

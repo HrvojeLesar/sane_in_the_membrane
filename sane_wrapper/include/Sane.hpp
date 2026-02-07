@@ -22,7 +22,6 @@ namespace sane_in_the_membrane::sane {
         CSane(const CSane&&) noexcept = delete;
 
         std::vector<std::weak_ptr<CSaneDevice>>       get_devices(SANE_Bool local_only = false);
-        const std::vector<std::weak_ptr<CSaneDevice>> peek_devices(SANE_Bool local_only = false);
         std::optional<CSaneStatus>                    get_status() const;
         bool                                          is_ok() const;
         CSaneStatus                                   init();

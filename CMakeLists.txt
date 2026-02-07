@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 4.2)
 
 project(unnamed-scanner-project LANGUAGES CXX)
 
@@ -31,14 +31,16 @@ else()
     add_compile_options(-O3)
 endif()
 
-
-add_compile_options(
+set(COMPILER_WARNING_FLAGS
     -Wall
     -Wextra
+    -Wpedantic
     -Wno-unused-parameter
     -Wno-unused-value
     -Wno-missing-field-initializers
-    -Wno-narrowing)
+    -Wno-narrowing
+    -Werror
+)
 
 add_subdirectory(utils)
 add_subdirectory(proto_lib)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 4.2)
 
 project(sane_in_the_membrane_utils C CXX)
 
@@ -13,3 +13,4 @@ target_include_directories(sane_in_the_membrane_utils_lib
 )
 
 set_target_properties(sane_in_the_membrane_utils_lib PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_options(sane_in_the_membrane_utils_lib PRIVATE ${COMPILER_WARNING_FLAGS})
