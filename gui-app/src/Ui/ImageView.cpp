@@ -108,7 +108,7 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
     connect(m_save, &QPushButton::clicked, this, [this]() {
         auto filename = QFileDialog::getSaveFileName(this, "Save pdf");
         if (filename.isEmpty()) {
-            std::cout << "Empty, exiting\n";
+            g_logger->log(DEBUG, "Empty, exiting");
             return;
         }
 
@@ -195,7 +195,7 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     }
 
     if (static_cast<size_t>(params->pixels_per_line * params->lines) > file->size()) {
-        std::cout << "File size does not correspond to params\n";
+        g_logger->log(INFO, "File size does not correspond to params");
         return;
     }
 

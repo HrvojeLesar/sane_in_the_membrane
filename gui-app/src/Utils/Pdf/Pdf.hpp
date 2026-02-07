@@ -2,6 +2,7 @@
 #define UTILS_PDF_PDF
 
 #include <exception>
+#include <format>
 #include <hpdf.h>
 #include <hpdf_doc.h>
 #include <hpdf_types.h>
@@ -9,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include "../ScannerUtils.hpp"
+#include "../../GlobalLogger.cpp"
 
 namespace sane_in_the_membrane::utils::pdf {
     class CPdf {
@@ -23,7 +25,7 @@ namespace sane_in_the_membrane::utils::pdf {
         }
 
         static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void* user_data) {
-            std::cout << error_no << " detail: " << detail_no << "\n";
+            g_logger->log(ERR, std::format("HPDF failed with errno: {} and detail_no: {}", error_no, detail_no));
         }
 
         bool add_image(HPDF_Image image) {

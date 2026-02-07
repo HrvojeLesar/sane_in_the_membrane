@@ -1,10 +1,11 @@
 #include "ScanButton.hpp"
 #include "ScannerSelect.hpp"
-#include <iostream>
+#include <format>
 #include <qobject.h>
 #include "../Readers/ScanResponseReader.hpp"
 #include "../Service/DeviceList.hpp"
 #include "../Utils/Globals.hpp"
+#include "../GlobalLogger.cpp"
 
 using namespace sane_in_the_membrane::ui;
 
@@ -18,14 +19,14 @@ CScanButton::CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent) : 
 void CScanButton::sl_clicked() {
     setDisabled(true);
     const auto scanner_data = m_scanner_select->currentData();
-    std::cout << scanner_data->scanner_name().toStdString() << scanner_data->scanner_display_name().toStdString() << "\n";
+    g_logger->log(TRACE, std::format("Scanning with: {} {}", scanner_data->scanner_name().toStdString(), scanner_data->scanner_display_name().toStdString()));
 
     m_request.set_scanner_name(scanner_data->scanner_name().toStdString());
     utils::Globals::get()->m_scan_response_reader.scan(m_request);
 }
 void CScanButton::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
     if (!status->ok()) {
-        std::cout << "Scan failed\n";
+        g_logger->log(WARN, "Scan failed");
     }
     setDisabled(false);
 }

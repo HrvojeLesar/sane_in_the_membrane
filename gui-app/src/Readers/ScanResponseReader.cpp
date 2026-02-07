@@ -2,6 +2,7 @@
 #include <atomic>
 #include <memory>
 #include "../Utils/Globals.hpp"
+#include "../GlobalLogger.cpp"
 
 using namespace sane_in_the_membrane;
 
@@ -27,9 +28,9 @@ void reader::CScanResponseReader::scan(const ScanRequest& request) {
     StartCall();
 }
 void reader::CScanResponseReader::OnReadDone(bool ok) {
-    std::cout << "Read done\n";
+    g_logger->log(DEBUG, "Read done");
     if (ok) {
-        std::cout << "Read ok\n";
+        g_logger->log(DEBUG, "Read ok");
         if (m_response.has_parameters()) {
             m_params          = utils::ScannerParameters(m_response.parameters());
             m_hundred_percent = ((uint64_t)m_params.bytes_per_line) * m_params.lines *
@@ -51,14 +52,14 @@ void reader::CScanResponseReader::OnReadDone(bool ok) {
 }
 
 void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
-    std::cout << "All done\n";
+    g_logger->log(DEBUG, "All done");
 
     m_in_progress.store(false, std::memory_order::relaxed);
 
     reset();
     emit sig_done(std::make_shared<grpc::Status>(s), m_current_file, std::make_shared<utils::ScannerParameters>(m_params));
 
-    std::cout << "Done after sig\n";
+    g_logger->log(DEBUG, "Done after sig");
 }
 
 void reader::CScanResponseReader::reset() {

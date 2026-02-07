@@ -37,7 +37,7 @@ void CLogger::log(ELogLevel log_level, const std::string_view& message) {
         case LOG_CRITICAL: prefix = "CRITICAL"; break;
     }
 
-    std::cout << prefix << message;
+    std::cout << prefix << message << "\n";
     std::cout.flush();
 
     if (m_file_enabled) {

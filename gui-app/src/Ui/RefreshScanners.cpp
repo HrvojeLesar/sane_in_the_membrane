@@ -1,7 +1,8 @@
 #include "RefreshScanners.hpp"
 #include "../Service/GetScannersService.hpp"
 #include "../Service/RefreshScannersService.hpp"
-#include "../Ui/MainApp.hpp"
+#include "../Utils/Globals.hpp"
+#include "../GlobalLogger.cpp"
 
 using namespace sane_in_the_membrane::ui;
 
@@ -16,7 +17,7 @@ CRefreshButton::CRefreshButton(QWidget* parent) : QPushButton("Refresh", parent)
 }
 
 void CRefreshButton::sl_refresh_scanners_failed() {
-    std::cout << "Refresh failed - button \n";
+    g_logger->log(DEBUG, "Refresh failed - button");
     enable_button();
 }
 
@@ -25,7 +26,7 @@ void CRefreshButton::sl_refresh_scanners() {
 }
 
 void CRefreshButton::sl_get_scanners_failed() {
-    std::cout << "Get scanners failed - button \n";
+    g_logger->log(DEBUG, "Get scanners failed - button");
     enable_button();
 }
 
