@@ -13,7 +13,7 @@ target_link_libraries(server_lib
         sane_in_the_membrane_lib
         sane_in_the_membrane_utils_lib
         generated_protobufs
-        avahi-client
+        PkgConfig::avahi-client
 )
 
 add_executable(Server src/main.cpp)
