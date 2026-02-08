@@ -13,11 +13,14 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/libharu/libharu
     GIT_TAG v2.4.5
 )
-
 FetchContent_MakeAvailable(libharu)
 if(NOT TARGET hpdf::hpdf)
     add_library(hpdf::hpdf ALIAS hpdf)
 endif()
+target_include_directories(hpdf INTERFACE
+    "${libharu_SOURCE_DIR}/include"
+    "${libharu_BINARY_DIR}/include"
+)
 
 set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 FetchContent_Declare(

@@ -2,6 +2,7 @@
 #define SANE_IN_THE_MEMBRANE_UTILS_LOGGER
 
 #include <cstdint>
+#include <expected>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
@@ -26,10 +27,10 @@ namespace sane_in_the_membrane::utils {
         CLogger(CLogger&)  = delete;
         CLogger(CLogger&&) = delete;
 
-        void set_log_level(ELogLevel log_level);
-        void set_stdout_enabled(bool enabled);
-        void set_log_file(const std::filesystem::path& file);
-        void log(ELogLevel log_level, const std::string_view& message);
+        void                             set_log_level(ELogLevel log_level);
+        void                             set_stdout_enabled(bool enabled);
+        std::expected<void, std::string> set_log_file(const std::filesystem::path& file);
+        void                             log(ELogLevel log_level, const std::string_view& message);
 
       private:
         ELogLevel     m_level;
