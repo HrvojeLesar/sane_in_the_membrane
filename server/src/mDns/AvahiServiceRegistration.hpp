@@ -14,6 +14,7 @@
 #include <format>
 #include "../GlobalLogger.cpp"
 #include <SynchronizedAccess.hpp>
+#include <optional>
 
 namespace sane_in_the_membrane::mdns {
 
@@ -126,8 +127,7 @@ namespace sane_in_the_membrane::mdns {
 
             switch (state) {
                 case AVAHI_ENTRY_GROUP_ESTABLISHED:
-                    /* The entry group has been established successfully */
-                    g_logger->log(INFO, std::format("Service '{}' successfully established", m_service_name));
+                    g_logger->log(INFO, std::format("Service '{}' successfully established on port '{}'", m_service_name, m_port));
                     break;
 
                 case AVAHI_ENTRY_GROUP_COLLISION: {
@@ -167,11 +167,17 @@ namespace sane_in_the_membrane::mdns {
       public:
         CAutoRestartableAvahiService() {}
 
-        void start() {
+        void start(std::optional<int> port) {
+            m_port = port;
             while (!m_shutdown.load(std::memory_order::relaxed)) {
                 reset();
                 g_logger->log(DEBUG, "Autorestrtable started");
-                m_avahi_service = new CAvahiService{};
+
+                if (port.has_value()) {
+                    m_avahi_service = new CAvahiService{port.value()};
+                } else {
+                    m_avahi_service = new CAvahiService{};
+                }
 
                 auto _ret = m_avahi_service->start_and_wait();
             }
@@ -192,8 +198,9 @@ namespace sane_in_the_membrane::mdns {
         }
 
       private:
-        std::atomic<bool> m_shutdown{false};
-        CAvahiService*    m_avahi_service{nullptr};
+        std::atomic<bool>  m_shutdown{false};
+        CAvahiService*     m_avahi_service{nullptr};
+        std::optional<int> m_port{std::nullopt};
     };
 }
 

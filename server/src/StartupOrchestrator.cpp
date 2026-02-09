@@ -1,17 +1,14 @@
 #ifndef STARTUP_ORCHESTRATOR
 #define STARTUP_ORCHESTRATOR
 
-#include <Sane.hpp>
 #include <atomic>
 #include <csignal>
-#include <grpcpp/grpcpp.h>
 #include <grpcpp/resource_quota.h>
 #include <grpcpp/server.h>
-#include <iostream>
-#include <memory>
-#include <sane/sane.h>
+#include <grpcpp/server_builder.h>
+#include <mutex>
+#include <optional>
 #include <string>
-#include <sys/poll.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -23,11 +20,8 @@ namespace sane_in_the_membrane::startup {
     class CStartupOrchestrator {
       public:
         static void sigint_handler(int) {
-            if (instance->m_grpc_server)
-                instance->m_grpc_server->Shutdown();
-
-            instance->m_avahi_service.shutdown();
-            instance->m_read_stdin.store(false, std::memory_order::relaxed);
+            if (instance)
+                instance->init_shutdown();
         }
 
         CStartupOrchestrator() {
@@ -35,6 +29,8 @@ namespace sane_in_the_membrane::startup {
                 return;
 
             instance = this;
+
+            init_default_server_builder();
 
             m_threads.emplace_back(SStdinWorker(*this));
             m_threads.emplace_back(SGrpcServerWorker(*this));
@@ -47,17 +43,30 @@ namespace sane_in_the_membrane::startup {
         CStartupOrchestrator(CStartupOrchestrator& other)  = delete;
         CStartupOrchestrator(CStartupOrchestrator&& other) = delete;
 
-        ~CStartupOrchestrator() {
+        void wait() {
+            std::lock_guard<std::mutex> lock{m_mutex};
             g_logger->log(TRACE, "CStartupOrchestrator waiting for threads");
             for (auto& thread : m_threads) {
                 thread.join();
             }
 
             instance = nullptr;
-            g_logger->log(TRACE, "CStartupOrchestrator destoryed");
         }
 
       private:
+        void init_default_server_builder() {
+            m_resource_quota.Resize(50 * 1024 * 1024);
+            m_resource_quota.SetMaxThreads(8);
+
+            m_builder.SetResourceQuota(m_resource_quota);
+            m_builder.AddListeningPort("[::]:0", grpc::InsecureServerCredentials(), &m_port);
+            m_builder.RegisterService(&m_scanner_service);
+
+            m_grpc_server = m_builder.BuildAndStart();
+
+            g_logger->log(INFO, std::format("gRPC bound to port: {}", m_port));
+        }
+
         struct SStdinWorker {
             SStdinWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
 
@@ -82,14 +91,7 @@ namespace sane_in_the_membrane::startup {
                             break;
 
                         if (input == "stop" || input == "s") {
-                            if (m_orchestrator.m_grpc_server) {
-                                g_logger->log(INFO, "Stopping grpc");
-                                m_orchestrator.m_grpc_server->Shutdown();
-                            }
-
-                            g_logger->log(INFO, "Stopping avahi");
-                            m_orchestrator.m_avahi_service.shutdown();
-
+                            m_orchestrator.init_shutdown();
                             break;
                         }
                     }
@@ -105,22 +107,9 @@ namespace sane_in_the_membrane::startup {
 
             void operator()() {
                 g_logger->log(INFO, "Started gRPC worker");
-                sane_in_the_membrane::service::CScannerServiceImpl scanner_service;
-
-                grpc::ResourceQuota                                resource_quota{};
-
-                resource_quota.Resize(50 * 1024 * 1024);
-                resource_quota.SetMaxThreads(8);
-
-                grpc::ServerBuilder builder;
-                builder.SetResourceQuota(resource_quota);
-                builder.AddListeningPort("localhost:50051", grpc::InsecureServerCredentials());
-                builder.RegisterService(&scanner_service);
-                m_orchestrator.m_grpc_server = builder.BuildAndStart();
-
-                g_logger->log(INFO, "Starting gRPC server");
 
                 m_orchestrator.m_grpc_server->Wait();
+                m_orchestrator.m_grpc_server.reset();
 
                 g_logger->log(INFO, "Shut down gRPC server");
             }
@@ -132,7 +121,7 @@ namespace sane_in_the_membrane::startup {
             SAvahiServiceWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
 
             void operator()() {
-                m_orchestrator.m_avahi_service.start();
+                m_orchestrator.m_avahi_service.start(m_orchestrator.m_port == 0 ? std::nullopt : std::optional(m_orchestrator.m_port));
 
                 g_logger->log(INFO, "Shut down avahi service registration");
             }
@@ -140,13 +129,29 @@ namespace sane_in_the_membrane::startup {
             CStartupOrchestrator& m_orchestrator;
         };
 
-      private:
-        std::unique_ptr<grpc::Server>       m_grpc_server{nullptr};
-        std::vector<std::thread>            m_threads{};
-        mdns::CAutoRestartableAvahiService  m_avahi_service;
-        std::atomic<bool>                   m_read_stdin{true};
+        void init_shutdown() {
+            if (m_grpc_server) {
+                g_logger->log(INFO, "Trying to shutdown grpc");
+                m_grpc_server->Shutdown();
+            }
 
-        static inline CStartupOrchestrator* instance = nullptr;
+            m_avahi_service.shutdown();
+            m_read_stdin.store(false, std::memory_order::relaxed);
+        }
+
+      private:
+        std::unique_ptr<grpc::Server>                      m_grpc_server{nullptr};
+        std::vector<std::thread>                           m_threads{};
+        mdns::CAutoRestartableAvahiService                 m_avahi_service;
+        std::atomic<bool>                                  m_read_stdin{true};
+        std::mutex                                         m_mutex{};
+
+        sane_in_the_membrane::service::CScannerServiceImpl m_scanner_service{};
+        grpc::ResourceQuota                                m_resource_quota{};
+        grpc::ServerBuilder                                m_builder{};
+        int                                                m_port{0};
+
+        static inline CStartupOrchestrator*                instance = nullptr;
     };
 
 }
