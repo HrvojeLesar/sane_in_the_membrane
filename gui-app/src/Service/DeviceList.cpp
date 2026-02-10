@@ -50,7 +50,7 @@ namespace sane_in_the_membrane::service {
     }
 
     void CDeviceList::sl_get_scanners_failed() {
-        g_logger->log(WARN, "File size does not correspond to params");
+        g_logger.log(WARN, "File size does not correspond to params");
     }
 
     void CDeviceList::sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response) {

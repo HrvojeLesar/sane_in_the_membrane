@@ -1,10 +1,9 @@
 #ifndef GLOGGER
 #define GLOGGER
 
-#include <memory>
 #include <Logger.hpp>
 
-inline std::unique_ptr<sane_in_the_membrane::utils::CLogger>  g_logger = std::make_unique<sane_in_the_membrane::utils::CLogger>();
+static inline sane_in_the_membrane::utils::CLogger            g_logger{};
 
 inline constexpr const sane_in_the_membrane::utils::ELogLevel TRACE    = sane_in_the_membrane::utils::ELogLevel::LOG_TRACE;
 inline constexpr const sane_in_the_membrane::utils::ELogLevel DEBUG    = sane_in_the_membrane::utils::ELogLevel::LOG_DEBUG;

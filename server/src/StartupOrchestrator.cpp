@@ -37,7 +37,7 @@ namespace sane_in_the_membrane::startup {
             m_threads.emplace_back(SAvahiServiceWorker(*this));
 
             std::signal(SIGINT, sigint_handler);
-            g_logger->log(TRACE, "CStartupOrchestrator constructed");
+            g_logger.log(TRACE, "CStartupOrchestrator constructed");
         }
 
         CStartupOrchestrator(CStartupOrchestrator& other)  = delete;
@@ -45,7 +45,7 @@ namespace sane_in_the_membrane::startup {
 
         void wait() {
             std::lock_guard<std::mutex> lock{m_mutex};
-            g_logger->log(TRACE, "CStartupOrchestrator waiting for threads");
+            g_logger.log(TRACE, "CStartupOrchestrator waiting for threads");
             for (auto& thread : m_threads) {
                 thread.join();
             }
@@ -64,14 +64,14 @@ namespace sane_in_the_membrane::startup {
 
             m_grpc_server = m_builder.BuildAndStart();
 
-            g_logger->log(INFO, std::format("gRPC bound to port: {}", m_port));
+            g_logger.log(INFO, std::format("gRPC bound to port: {}", m_port));
         }
 
         struct SStdinWorker {
             SStdinWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
 
             void operator()() {
-                g_logger->log(INFO, "Started stdin worker");
+                g_logger.log(INFO, "Started stdin worker");
 
                 pollfd pfd{
                     .fd     = STDIN_FILENO,
@@ -96,7 +96,7 @@ namespace sane_in_the_membrane::startup {
                         }
                     }
                 }
-                g_logger->log(INFO, "Shut down stdin worker");
+                g_logger.log(INFO, "Shut down stdin worker");
             }
 
             CStartupOrchestrator& m_orchestrator;
@@ -106,12 +106,12 @@ namespace sane_in_the_membrane::startup {
             SGrpcServerWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
 
             void operator()() {
-                g_logger->log(INFO, "Started gRPC worker");
+                g_logger.log(INFO, "Started gRPC worker");
 
                 m_orchestrator.m_grpc_server->Wait();
                 m_orchestrator.m_grpc_server.reset();
 
-                g_logger->log(INFO, "Shut down gRPC server");
+                g_logger.log(INFO, "Shut down gRPC server");
             }
 
             CStartupOrchestrator& m_orchestrator;
@@ -123,7 +123,7 @@ namespace sane_in_the_membrane::startup {
             void operator()() {
                 m_orchestrator.m_avahi_service.start(m_orchestrator.m_port == 0 ? std::nullopt : std::optional(m_orchestrator.m_port));
 
-                g_logger->log(INFO, "Shut down avahi service registration");
+                g_logger.log(INFO, "Shut down avahi service registration");
             }
 
             CStartupOrchestrator& m_orchestrator;
@@ -131,7 +131,7 @@ namespace sane_in_the_membrane::startup {
 
         void init_shutdown() {
             if (m_grpc_server) {
-                g_logger->log(INFO, "Trying to shutdown grpc");
+                g_logger.log(INFO, "Trying to shutdown grpc");
                 m_grpc_server->Shutdown();
             }
 

@@ -17,7 +17,7 @@ CRefreshButton::CRefreshButton(QWidget* parent) : QPushButton("Refresh", parent)
 }
 
 void CRefreshButton::sl_refresh_scanners_failed() {
-    g_logger->log(DEBUG, "Refresh failed - button");
+    g_logger.log(DEBUG, "Refresh failed - button");
     enable_button();
 }
 
@@ -26,7 +26,7 @@ void CRefreshButton::sl_refresh_scanners() {
 }
 
 void CRefreshButton::sl_get_scanners_failed() {
-    g_logger->log(DEBUG, "Get scanners failed - button");
+    g_logger.log(DEBUG, "Get scanners failed - button");
     enable_button();
 }
 

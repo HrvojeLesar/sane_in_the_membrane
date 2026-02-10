@@ -132,16 +132,16 @@ namespace sane_in_the_membrane::utils::mdns {
             int sockets[32];
             int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
             if (num_sockets <= 0) {
-                g_logger->log(ERR, "Failed to open any client sockets");
+                g_logger.log(ERR, "Failed to open any client sockets");
                 return std::unexpected("Failed to open any client sockets");
             }
 
-            g_logger->log(DEBUG, std::format("Opened {} socket{} for DNS-SD", num_sockets, num_sockets > 1 ? "s" : ""));
+            g_logger.log(DEBUG, std::format("Opened {} socket{} for DNS-SD", num_sockets, num_sockets > 1 ? "s" : ""));
 
-            g_logger->log(DEBUG, "Sending DNS-SD discovery");
+            g_logger.log(DEBUG, "Sending DNS-SD discovery");
             for (int isock = 0; isock < num_sockets; ++isock) {
                 if (mdns_discovery_send(sockets[isock]))
-                    g_logger->log(ERR, std::format("Failed to send DNS-DS discovery: {}", strerror(errno)));
+                    g_logger.log(ERR, std::format("Failed to send DNS-DS discovery: {}", strerror(errno)));
             }
 
             size_t capacity = 2048;
@@ -149,7 +149,7 @@ namespace sane_in_the_membrane::utils::mdns {
             size_t records;
 
             int    res;
-            g_logger->log(DEBUG, "Reading DNS-SD replies");
+            g_logger.log(DEBUG, "Reading DNS-SD replies");
             do {
                 struct timeval timeout;
                 timeout.tv_sec  = m_discover_timeout_sec;
@@ -179,7 +179,7 @@ namespace sane_in_the_membrane::utils::mdns {
 
             for (int isock = 0; isock < num_sockets; ++isock)
                 mdns_socket_close(sockets[isock]);
-            g_logger->log(INFO, std::format("Closed socket{}", num_sockets > 1 ? "s" : ""));
+            g_logger.log(INFO, std::format("Closed socket{}", num_sockets > 1 ? "s" : ""));
 
             return {};
         }
@@ -228,7 +228,7 @@ namespace sane_in_the_membrane::utils::mdns {
 
             if (!adapter_address || (ret != NO_ERROR)) {
                 free(adapter_address);
-                g_logger->log(ERR, "Failed to get network adapter addresses");
+                g_logger.log(ERR, "Failed to get network adapter addresses");
                 return num_sockets;
             }
 
@@ -291,7 +291,7 @@ namespace sane_in_the_membrane::utils::mdns {
             struct ifaddrs* ifa    = 0;
 
             if (getifaddrs(&ifaddr) < 0)
-                g_logger->log(ERR, "Unable to get interface addresses");
+                g_logger.log(ERR, "Unable to get interface addresses");
 
             int first_ipv4 = 1;
             int first_ipv6 = 1;
@@ -401,10 +401,10 @@ namespace sane_in_the_membrane::utils::mdns {
             int query_id[32];
             int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
             if (num_sockets <= 0) {
-                g_logger->log(ERR, "Failed to open any client sockets");
+                g_logger.log(ERR, "Failed to open any client sockets");
                 return std::unexpected("Failed to open any client sockets");
             }
-            g_logger->log(DEBUG, std::format("Opened {} socket{} for mDNS query", num_sockets, num_sockets > 1 ? "s" : ""));
+            g_logger.log(DEBUG, std::format("Opened {} socket{} for mDNS query", num_sockets, num_sockets > 1 ? "s" : ""));
 
             size_t capacity = 2048;
             void*  buffer   = malloc(capacity);
@@ -419,13 +419,13 @@ namespace sane_in_the_membrane::utils::mdns {
                     record_name = "AAAA";
                 else
                     query[iq].type = MDNS_RECORDTYPE_PTR;
-                g_logger->log(DEBUG, std::format("Sending mDNS query: {} {}", query[iq].name, record_name));
+                g_logger.log(DEBUG, std::format("Sending mDNS query: {} {}", query[iq].name, record_name));
             }
 
             for (int isock = 0; isock < num_sockets; ++isock) {
                 query_id[isock] = mdns_multiquery_send(sockets[isock], query, count, buffer, capacity, 0);
                 if (query_id[isock] < 0)
-                    g_logger->log(ERR, std::format("Failed to send mDNS query: {}", strerror(errno)));
+                    g_logger.log(ERR, std::format("Failed to send mDNS query: {}", strerror(errno)));
             }
 
             int res;

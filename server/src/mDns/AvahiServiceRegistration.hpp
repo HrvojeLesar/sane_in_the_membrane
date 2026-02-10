@@ -39,11 +39,11 @@ namespace sane_in_the_membrane::mdns {
 
       public:
         CAvahiService(int port = 50051) : m_simple_poll(avahi_simple_poll_new()), m_port(port) {
-            g_logger->log(DEBUG, "Create avahi");
+            g_logger.log(DEBUG, "Create avahi");
         }
 
         ~CAvahiService() {
-            g_logger->log(DEBUG, "Destroy avahi");
+            g_logger.log(DEBUG, "Destroy avahi");
             if (m_client)
                 avahi_client_free(m_client);
             if (m_simple_poll)
@@ -51,12 +51,12 @@ namespace sane_in_the_membrane::mdns {
         }
 
         std::expected<void, int> start_and_wait() {
-            g_logger->log(DEBUG, "Starting Avahi service registration");
+            g_logger.log(DEBUG, "Starting Avahi service registration");
             int error{};
             m_client = avahi_client_new(avahi_simple_poll_get(m_simple_poll), AvahiClientFlags::AVAHI_CLIENT_NO_FAIL, s_client_callback, this, &error);
 
             if (error < 0) {
-                g_logger->log(ERR, std::format("Avahi service registration failed with errorno: {}", error));
+                g_logger.log(ERR, std::format("Avahi service registration failed with errorno: {}", error));
                 return std::unexpected(error);
             }
 
@@ -76,13 +76,13 @@ namespace sane_in_the_membrane::mdns {
                 m_group = avahi_entry_group_new(m_client, s_group_callback, this);
 
             if (avahi_entry_group_is_empty(m_group)) {
-                g_logger->log(INFO, std::format("Adding service '{}'", m_service_name));
+                g_logger.log(INFO, std::format("Adding service '{}'", m_service_name));
 
                 auto ret = avahi_entry_group_add_service(m_group, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, static_cast<AvahiPublishFlags>(0), m_service_name.c_str(), SERVICE_TYPE, NULL,
                                                          NULL, m_port, NULL);
 
                 if (ret == AVAHI_ERR_COLLISION) {
-                    g_logger->log(INFO, std::format("Avahi service collision '{}', changing name", m_service_name));
+                    g_logger.log(INFO, std::format("Avahi service collision '{}', changing name", m_service_name));
                     avahi_entry_group_reset(m_group);
                     create_service();
 
@@ -90,13 +90,13 @@ namespace sane_in_the_membrane::mdns {
                 }
 
                 if (ret != AVAHI_OK) {
-                    g_logger->log(ERR, std::format("Failed to add {} service to avahi: {}", m_service_name, avahi_strerror(ret)));
+                    g_logger.log(ERR, std::format("Failed to add {} service to avahi: {}", m_service_name, avahi_strerror(ret)));
                     return shutdown();
                 }
 
                 ret = avahi_entry_group_commit(m_group);
                 if (ret < 0) {
-                    g_logger->log(ERR, std::format("Failed to commit entry group: {}", avahi_strerror(ret)));
+                    g_logger.log(ERR, std::format("Failed to commit entry group: {}", avahi_strerror(ret)));
                     return shutdown();
                 }
             }
@@ -114,7 +114,7 @@ namespace sane_in_the_membrane::mdns {
                         avahi_entry_group_reset(m_group);
                     break;
                 case AVAHI_CLIENT_FAILURE: {
-                    g_logger->log(ERR, std::format("Client failed with error: {}", avahi_strerror(avahi_client_errno(m_client))));
+                    g_logger.log(ERR, std::format("Client failed with error: {}", avahi_strerror(avahi_client_errno(m_client))));
                     return shutdown();
                 }
                 case AVAHI_CLIENT_CONNECTING: break;
@@ -127,12 +127,12 @@ namespace sane_in_the_membrane::mdns {
 
             switch (state) {
                 case AVAHI_ENTRY_GROUP_ESTABLISHED:
-                    g_logger->log(INFO, std::format("Service '{}' successfully established on port '{}'", m_service_name, m_port));
+                    g_logger.log(INFO, std::format("Service '{}' successfully established on port '{}'", m_service_name, m_port));
                     break;
 
                 case AVAHI_ENTRY_GROUP_COLLISION: {
                     alternative_service_name();
-                    g_logger->log(WARN, std::format("Service name collision, renaming service to '{}'", m_service_name));
+                    g_logger.log(WARN, std::format("Service name collision, renaming service to '{}'", m_service_name));
 
                     if (m_group)
                         avahi_entry_group_reset(m_group);
@@ -142,7 +142,7 @@ namespace sane_in_the_membrane::mdns {
                 }
 
                 case AVAHI_ENTRY_GROUP_FAILURE: {
-                    g_logger->log(ERR, std::format("Entry group failed with error: {}", avahi_strerror(avahi_client_errno(m_client))));
+                    g_logger.log(ERR, std::format("Entry group failed with error: {}", avahi_strerror(avahi_client_errno(m_client))));
                     return shutdown();
                 }
                 case AVAHI_ENTRY_GROUP_UNCOMMITED:
@@ -171,7 +171,7 @@ namespace sane_in_the_membrane::mdns {
             m_port = port;
             while (!m_shutdown.load(std::memory_order::relaxed)) {
                 reset();
-                g_logger->log(DEBUG, "Autorestrtable started");
+                g_logger.log(DEBUG, "Autorestrtable started");
 
                 if (port.has_value()) {
                     m_avahi_service = new CAvahiService{port.value()};
