@@ -9,7 +9,9 @@ namespace sane_in_the_membrane::utils::proxy {
         Q_OBJECT
 
       public:
-        CChangeStateWatcher(std::shared_ptr<service::CChangeStateWatcher>& service) : CServiceProxyBase(service) {}
+        CChangeStateWatcher(std::shared_ptr<service::CChangeStateWatcher>& service) : CServiceProxyBase(service) {
+            set_connections();
+        }
 
         virtual void set_connections() override {
             QObject::connect(m_service.get(), &service::CChangeStateWatcher::sig_channel_state_changed, this, &CChangeStateWatcher::sig_channel_state_changed);

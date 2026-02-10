@@ -9,7 +9,9 @@ namespace sane_in_the_membrane::utils::proxy {
         Q_OBJECT
 
       public:
-        CScanResponseReaderProxy(std::shared_ptr<reader::CScanResponseReader>& service) : CServiceProxyBase(service) {}
+        CScanResponseReaderProxy(std::shared_ptr<reader::CScanResponseReader>& service) : CServiceProxyBase(service) {
+            set_connections();
+        }
 
         virtual void set_connections() override {
             QObject::connect(m_service.get(), &reader::CScanResponseReader::sig_done, this, &CScanResponseReaderProxy::sig_done);

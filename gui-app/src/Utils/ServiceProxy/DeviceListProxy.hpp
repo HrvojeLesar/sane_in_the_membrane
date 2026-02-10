@@ -9,7 +9,9 @@ namespace sane_in_the_membrane::utils::proxy {
         Q_OBJECT
 
       public:
-        CDeviceListProxy(std::shared_ptr<service::CDeviceList>& service) : CServiceProxyBase(service) {}
+        CDeviceListProxy(std::shared_ptr<service::CDeviceList>& service) : CServiceProxyBase(service) {
+            set_connections();
+        }
 
         virtual void set_connections() override {
             QObject::connect(m_service.get(), &service::CDeviceList::sig_scanners_changed, this, &CDeviceListProxy::sig_scanners_changed);

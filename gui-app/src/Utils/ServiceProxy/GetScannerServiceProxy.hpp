@@ -9,7 +9,9 @@ namespace sane_in_the_membrane::utils::proxy {
         Q_OBJECT
 
       public:
-        CRefreshScannersProxy(std::shared_ptr<service::CGetScannersService>& service) : CServiceProxyBase(service) {}
+        CGetScannerServiceProxy(std::shared_ptr<service::CGetScannersService>& service) : CServiceProxyBase(service) {
+            set_connections();
+        }
 
         virtual void set_connections() override {
             QObject::connect(m_service.get(), &service::CGetScannersService::sig_get_scanners, this, &CRefreshScannersProxy::sig_get_scanners);
