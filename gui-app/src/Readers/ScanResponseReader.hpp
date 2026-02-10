@@ -18,7 +18,7 @@ namespace sane_in_the_membrane::reader {
     class CScanResponseReader : public QObject, public grpc::ClientReadReactor<scanner::v1::ScanResponse> {
         Q_OBJECT
       public:
-        CScanResponseReader(ScannerService::Stub& stub);
+        CScanResponseReader(std::shared_ptr<ScannerService::Stub>& stub);
         ~CScanResponseReader();
 
         void scan(const ScanRequest& request);
@@ -35,14 +35,14 @@ namespace sane_in_the_membrane::reader {
         void start_new_file();
 
       private:
-        ScannerService::Stub&         m_stub;
-        grpc::ClientContext*          m_context{nullptr};
-        ScanResponse                  m_response{};
-        utils::ScannerParameters      m_params{};
-        uint64_t                      m_hundred_percent{0};
-        uint64_t                      m_total_bytes{0};
-        std::atomic<bool>             m_in_progress{false};
-        std::shared_ptr<utils::CFile> m_current_file{nullptr};
+        std::shared_ptr<ScannerService::Stub> m_stub;
+        grpc::ClientContext*                  m_context{nullptr};
+        ScanResponse                          m_response{};
+        utils::ScannerParameters              m_params{};
+        uint64_t                              m_hundred_percent{0};
+        uint64_t                              m_total_bytes{0};
+        std::atomic<bool>                     m_in_progress{false};
+        std::shared_ptr<utils::CFile>         m_current_file{nullptr};
     };
 }
 

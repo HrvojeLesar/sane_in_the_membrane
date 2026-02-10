@@ -12,7 +12,7 @@ namespace sane_in_the_membrane::service {
     class CGetScannersService : public QObject {
         Q_OBJECT
       public:
-        CGetScannersService(scanner::v1::ScannerService::Stub& stub);
+        CGetScannersService(std::shared_ptr<scanner::v1::ScannerService::Stub>& stub);
 
         void get_scanners();
 
@@ -21,7 +21,7 @@ namespace sane_in_the_membrane::service {
         void sig_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse>);
 
       private:
-        scanner::v1::ScannerService::Stub& m_stub;
+        std::shared_ptr<scanner::v1::ScannerService::Stub> m_stub;
     };
 }
 

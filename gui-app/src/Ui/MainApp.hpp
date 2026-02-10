@@ -5,6 +5,7 @@
 #include "scanner/v1/scanner.grpc.pb.h"
 #include <grpcpp/channel.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/security/credentials.h>
 #include <grpcpp/support/channel_arguments.h>
 #include <memory>
 #include <qapplication.h>
@@ -20,15 +21,15 @@ namespace sane_in_the_membrane::ui {
 
             grpc::ChannelArguments args;
             args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
-            auto g = utils::Globals::init(args);
+            auto g = utils::Globals::init("localhost:50051", grpc::InsecureChannelCredentials(), args);
 
-            g->m_state_change_watcher.start();
+            g->m_state_change_watcher->start();
 
             m_main_window = std::make_unique<CMainWindow>();
         }
 
         ~CMainApp() {
-            utils::Globals::get()->m_state_change_watcher.stop();
+            utils::Globals::get()->m_state_change_watcher->stop();
         }
 
         int exec() {

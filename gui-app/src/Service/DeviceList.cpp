@@ -12,9 +12,9 @@ namespace sane_in_the_membrane::service {
         m_scanner_display_name(QString::fromStdString(std::format("{} {}", scanner_info.vendor(), scanner_info.model()))) {}
     CScannerItem::~CScannerItem() {}
 
-    CDeviceList::CDeviceList(service::CGetScannersService& service) : m_get_scanner_service(service) {
-        QObject::connect(&m_get_scanner_service, &CGetScannersService::sig_get_scanners_failed, this, &CDeviceList::sl_get_scanners_failed);
-        QObject::connect(&m_get_scanner_service, &CGetScannersService::sig_get_scanners, this, &CDeviceList::sl_get_scanners);
+    CDeviceList::CDeviceList(std::shared_ptr<service::CGetScannersService>& service) : m_get_scanner_service(service) {
+        QObject::connect(&*m_get_scanner_service, &CGetScannersService::sig_get_scanners_failed, this, &CDeviceList::sl_get_scanners_failed);
+        QObject::connect(&*m_get_scanner_service, &CGetScannersService::sig_get_scanners, this, &CDeviceList::sl_get_scanners);
     }
     CDeviceList::~CDeviceList() {}
 

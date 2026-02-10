@@ -41,7 +41,7 @@ namespace sane_in_the_membrane::service {
     class CDeviceList : public QObject {
         Q_OBJECT
       public:
-        CDeviceList(service::CGetScannersService& get_scanner_service);
+        CDeviceList(std::shared_ptr<service::CGetScannersService>& get_scanner_service);
         ~CDeviceList();
 
         void                                                                add_scanner_item(const CScannerItem scanner_item);
@@ -61,7 +61,7 @@ namespace sane_in_the_membrane::service {
 
       private:
         UniqueAccess<std::vector<std::shared_ptr<CScannerItem>>> m_scanners{};
-        service::CGetScannersService&                            m_get_scanner_service;
+        std::shared_ptr<service::CGetScannersService>            m_get_scanner_service;
     };
 }
 

@@ -406,8 +406,8 @@ namespace sane_in_the_membrane::utils::mdns {
             }
             g_logger->log(DEBUG, std::format("Opened {} socket{} for mDNS query", num_sockets, num_sockets > 1 ? "s" : ""));
 
-            size_t capacity  = 2048;
-            void*  buffer    = malloc(capacity);
+            size_t capacity = 2048;
+            void*  buffer   = malloc(capacity);
 
             for (size_t iq = 0; iq < count; ++iq) {
                 const char* record_name = "PTR";
@@ -523,7 +523,7 @@ namespace sane_in_the_membrane::utils::mdns {
 
         long                      m_discover_timeout_sec;
         long                      m_query_timeout_sec;
-        CPartialQueryResult        m_partial_query_result{};
+        CPartialQueryResult       m_partial_query_result{};
         std::vector<SQueryResult> m_query_results{};
     };
 }

@@ -11,8 +11,8 @@ using namespace sane_in_the_membrane::ui;
 
 CScanButton::CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
     QObject::connect(this, &CScanButton::clicked, this, &CScanButton::sl_clicked);
-    QObject::connect(&utils::Globals::get()->m_scan_response_reader, &reader::CScanResponseReader::sig_done, this, &CScanButton::sl_sig_done);
-    QObject::connect(&utils::Globals::get()->m_device_list, &service::CDeviceList::sig_scanners_changed, this, &CScanButton::sl_scanners_changed);
+    QObject::connect(&*utils::Globals::get()->m_scan_response_reader, &reader::CScanResponseReader::sig_done, this, &CScanButton::sl_sig_done);
+    QObject::connect(&*utils::Globals::get()->m_device_list, &service::CDeviceList::sig_scanners_changed, this, &CScanButton::sl_scanners_changed);
     setDisabled(true);
 }
 
@@ -22,7 +22,7 @@ void CScanButton::sl_clicked() {
     g_logger->log(TRACE, std::format("Scanning with: {} {}", scanner_data->scanner_name().toStdString(), scanner_data->scanner_display_name().toStdString()));
 
     m_request.set_scanner_name(scanner_data->scanner_name().toStdString());
-    utils::Globals::get()->m_scan_response_reader.scan(m_request);
+    utils::Globals::get()->m_scan_response_reader->scan(m_request);
 }
 void CScanButton::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
     if (!status->ok()) {

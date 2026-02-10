@@ -10,42 +10,73 @@
 #include "../Readers/ScanResponseReader.hpp"
 #include "../Service/ChannelStateChangeService.hpp"
 #include "../Service/FileManager.hpp"
+#include <Assert.hpp>
 
 namespace sane_in_the_membrane::utils {
-    struct Globals {
-        Globals(grpc::ChannelArguments args) :
-            m_channel(grpc::CreateCustomChannel("localhost:50051", grpc::InsecureChannelCredentials(), args)), m_stub(m_channel), m_get_scanner_service(m_stub),
-            m_refresh_scanner_service(m_stub), m_device_list(m_get_scanner_service), m_scan_response_reader(m_stub), m_state_change_watcher(m_channel), m_file_manager() {}
+    class CGlobalsChangeReactor;
 
-        std::shared_ptr<grpc::Channel>    m_channel;
-        scanner::v1::ScannerService::Stub m_stub;
-        service::CGetScannersService      m_get_scanner_service;
-        service::CRefreshScannersService  m_refresh_scanner_service;
-        service::CDeviceList              m_device_list;
-        reader::CScanResponseReader       m_scan_response_reader;
-        service::CChangeStateWatcher      m_state_change_watcher;
-        service::CFileManager             m_file_manager;
+    class Globals {
+      public:
+        Globals(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) :
+            m_channel(grpc::CreateCustomChannel(connect_to, creds, args)), m_stub(std::make_shared<scanner::v1::ScannerService::Stub>(m_channel)),
+            m_get_scanner_service(std::make_shared<service::CGetScannersService>(m_stub)), m_refresh_scanner_service(std::make_shared<service::CRefreshScannersService>(m_stub)),
+            m_device_list(std::make_shared<service::CDeviceList>(m_get_scanner_service)), m_scan_response_reader(std::make_shared<reader::CScanResponseReader>(m_stub)),
+            m_state_change_watcher(std::make_shared<service::CChangeStateWatcher>(m_channel)), m_file_manager() {}
 
-        static std::shared_ptr<Globals>   get() {
+      private:
+        std::shared_ptr<grpc::Channel>                     m_channel;
+        std::shared_ptr<scanner::v1::ScannerService::Stub> m_stub;
+        std::shared_ptr<service::CGetScannersService>      m_get_scanner_service;
+        std::shared_ptr<service::CRefreshScannersService>  m_refresh_scanner_service;
+        std::shared_ptr<service::CDeviceList>              m_device_list;
+        std::shared_ptr<reader::CScanResponseReader>       m_scan_response_reader;
+        std::shared_ptr<service::CChangeStateWatcher>      m_state_change_watcher;
+        std::shared_ptr<service::CFileManager>             m_file_manager;
+
+      public:
+        static std::shared_ptr<Globals> get() {
             if (g_instance == nullptr) {
-                std::cerr << "Use of globals before initialization\n";
-                std::terminate();
+                SITM_ASSERT(0, "Use of globals before initialization");
             }
 
             return g_instance;
         }
 
-        static std::shared_ptr<Globals> init(grpc::ChannelArguments args) {
+        static std::shared_ptr<Globals> init(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
             if (g_instance.get() == nullptr) {
-                g_instance = std::make_shared<utils::Globals>(args);
+                g_instance = std::make_shared<utils::Globals>(connect_to, creds, args);
             }
+
+            return g_instance;
+        }
+
+        static std::shared_ptr<Globals> change_channel(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
+            if (g_instance == nullptr) {
+                SITM_ASSERT(0, "Use of globals before initialization");
+            }
+
+            g_instance = std::make_shared<utils::Globals>(connect_to, creds, args);
 
             return g_instance;
         }
 
       private:
-        static std::shared_ptr<Globals> g_instance;
+        static inline std::shared_ptr<Globals> g_instance{nullptr};
     };
+
+    class CGlobalsChangeReactor : public QObject {
+        Q_OBJECT
+
+      public:
+        void emit_globals(std::shared_ptr<Globals>& globals) {
+            emit sig_globals_changed(globals);
+        }
+
+      signals:
+        void sig_globals_changed(std::shared_ptr<Globals>& globals);
+    };
+
+    static inline std::unique_ptr<CGlobalsChangeReactor> g_globals_change_reactor{};
 }
 
 #endif // !UTILS_GLOBALS

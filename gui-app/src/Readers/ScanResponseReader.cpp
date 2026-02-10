@@ -6,7 +6,7 @@
 
 using namespace sane_in_the_membrane;
 
-reader::CScanResponseReader::CScanResponseReader(ScannerService::Stub& stub) : m_stub(stub) {}
+reader::CScanResponseReader::CScanResponseReader(std::shared_ptr<ScannerService::Stub>& stub) : m_stub(stub) {}
 reader::CScanResponseReader::~CScanResponseReader() {
     reset_context();
 }
@@ -22,7 +22,7 @@ void reader::CScanResponseReader::scan(const ScanRequest& request) {
     start_new_file();
     m_context = new grpc::ClientContext();
 
-    m_stub.async()->Scan(m_context, &request, this);
+    m_stub->async()->Scan(m_context, &request, this);
 
     StartRead(&m_response);
     StartCall();
@@ -74,5 +74,5 @@ void reader::CScanResponseReader::reset_context() {
 }
 
 void reader::CScanResponseReader::start_new_file() {
-    m_current_file = utils::Globals::get()->m_file_manager.new_temp_file();
+    m_current_file = utils::Globals::get()->m_file_manager->new_temp_file();
 }
