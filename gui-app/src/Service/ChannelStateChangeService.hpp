@@ -10,8 +10,14 @@
 #include <thread>
 #include "SynchronizedAccess.hpp"
 
+namespace sane_in_the_membrane::utils::proxy {
+    class CChangeStateWatcher;
+}
+
 namespace sane_in_the_membrane::service {
     class CChangeStateWatcher : public QObject {
+        friend class sane_in_the_membrane::utils::proxy::CChangeStateWatcher;
+
       private:
         class CChannelState {
           private:
