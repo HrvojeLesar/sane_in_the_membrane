@@ -17,6 +17,10 @@ namespace sane_in_the_membrane::utils::proxy {
             QObject::connect(m_service.get(), &service::CDeviceList::sig_scanners_changed, this, &CDeviceListProxy::sig_scanners_changed);
         }
 
+        const SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>> get_scanners() const {
+            return m_service->get_scanners();
+        }
+
       signals:
         void sig_scanners_changed(const SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& scanners);
     };

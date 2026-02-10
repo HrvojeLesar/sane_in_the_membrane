@@ -97,7 +97,7 @@ uint32_t CImageItem::get_page_number() {
 CImageView::CImageView(std::string filepath, QWidget* parent) :
     QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new QScrollArea(this)),
     m_save(new QPushButton("Save", this)) {
-    QObject::connect(&*utils::Globals::get()->m_scan_response_reader, &reader::CScanResponseReader::sig_done, this, &CImageView::sl_sig_done);
+    QObject::connect(&utils::Globals::get()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_done, this, &CImageView::sl_sig_done);
 
     m_scroll->setWidgetResizable(true);
     m_scroll->setWidget(m_image_container);
@@ -199,7 +199,7 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
         return;
     }
 
-    auto   image_file = utils::Globals::get()->m_file_manager->new_temp_file_with_extension(".jpg");
+    auto   image_file = utils::Globals::file_manager()->new_temp_file_with_extension(".jpg");
     auto   file_data  = file->read();
 
     QImage img{file_data.data(), static_cast<int>(params->width()), static_cast<int>(params->height()), params->bytes_per_line, QImage::Format::Format_RGB888};

@@ -18,6 +18,10 @@ namespace sane_in_the_membrane::utils::proxy {
             QObject::connect(m_service.get(), &service::CRefreshScannersService::sig_refresh_scanners_failed, this, &CRefreshScannersProxy::sig_refresh_scanners_failed);
         }
 
+        void refresh_scanners() {
+            m_service->refresh_scanners();
+        }
+
       signals:
         void sig_refresh_scanners_failed();
         void sig_refresh_scanners(std::shared_ptr<scanner::v1::RefreshScannersResponse>);

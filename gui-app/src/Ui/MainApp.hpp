@@ -23,13 +23,13 @@ namespace sane_in_the_membrane::ui {
             args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
             auto g = utils::Globals::init("localhost:50051", grpc::InsecureChannelCredentials(), args);
 
-            g->m_state_change_watcher->start();
+            g->channel_state_change_watcher()->start();
 
             m_main_window = std::make_unique<CMainWindow>();
         }
 
         ~CMainApp() {
-            utils::Globals::get()->m_state_change_watcher->stop();
+            utils::Globals::channel_state_change_watcher()->stop();
         }
 
         int exec() {

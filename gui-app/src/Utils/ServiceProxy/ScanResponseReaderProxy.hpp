@@ -18,6 +18,10 @@ namespace sane_in_the_membrane::utils::proxy {
             QObject::connect(m_service.get(), &reader::CScanResponseReader::sig_progress, this, &CScanResponseReaderProxy::sig_progress);
         }
 
+        void scan(const reader::ScanRequest& request) {
+            m_service->scan(request);
+        }
+
       signals:
         void sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
         void sig_progress(double progress);

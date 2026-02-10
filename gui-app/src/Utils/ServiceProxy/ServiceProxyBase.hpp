@@ -7,9 +7,11 @@
 namespace sane_in_the_membrane::utils::proxy {
     template <typename T>
     class CServiceProxyBase : public QObject {
-        Q_OBJECT
       protected:
         CServiceProxyBase() = delete;
+
+        CServiceProxyBase(CServiceProxyBase&& other) : m_service(std::move(other.m_service)) {}
+        CServiceProxyBase(const std::shared_ptr<T>& service) : m_service(service) {}
 
         CServiceProxyBase(const std::shared_ptr<T>& service) : m_service(service) {}
         CServiceProxyBase(CServiceProxyBase&& other) : m_service(std::move(other.m_service)) {}
@@ -18,7 +20,7 @@ namespace sane_in_the_membrane::utils::proxy {
 
       public:
         virtual void replace_service(std::shared_ptr<T>& service) {
-            QObject::disconnect(m_service);
+            QObject::disconnect(m_service.get(), nullptr, nullptr, nullptr);
 
             m_service = service;
 

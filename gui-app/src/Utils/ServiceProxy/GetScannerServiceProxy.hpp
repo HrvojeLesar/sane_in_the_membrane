@@ -5,7 +5,7 @@
 #include "../../Service/GetScannersService.hpp"
 
 namespace sane_in_the_membrane::utils::proxy {
-    class CRefreshScannersProxy : public CServiceProxyBase<service::CGetScannersService> {
+    class CGetScannerServiceProxy : public CServiceProxyBase<service::CGetScannersService> {
         Q_OBJECT
 
       public:
@@ -14,8 +14,12 @@ namespace sane_in_the_membrane::utils::proxy {
         }
 
         virtual void set_connections() override {
-            QObject::connect(m_service.get(), &service::CGetScannersService::sig_get_scanners, this, &CRefreshScannersProxy::sig_get_scanners);
-            QObject::connect(m_service.get(), &service::CGetScannersService::sig_get_scanners_failed, this, &CRefreshScannersProxy::sig_get_scanners_failed);
+            QObject::connect(m_service.get(), &service::CGetScannersService::sig_get_scanners, this, &CGetScannerServiceProxy::sig_get_scanners);
+            QObject::connect(m_service.get(), &service::CGetScannersService::sig_get_scanners_failed, this, &CGetScannerServiceProxy::sig_get_scanners_failed);
+        }
+
+        void get_scanners() {
+            m_service->get_scanners();
         }
 
       signals:
