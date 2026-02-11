@@ -32,18 +32,18 @@ extern "C" {
 #include "../../GlobalLogger.cpp"
 
 namespace sane_in_the_membrane::utils::mdns {
+    struct SQueryResult {
+        enum EAddressType {
+            IPV4,
+            IPV6
+        };
+        std::string  address;
+        uint16_t     port;
+        EAddressType address_type;
+    };
+
     // Most implementation from mdns.c, credits to https://github.com/mjansson/mdns
     class CMDns {
-
-        struct SQueryResult {
-            enum EAddressType {
-                IPV4,
-                IPV6
-            };
-            std::string  address;
-            uint16_t     port;
-            EAddressType address_type;
-        };
 
         class CPartialQueryResult {
           public:
@@ -194,9 +194,11 @@ namespace sane_in_the_membrane::utils::mdns {
                                                 }) |
                 std::ranges::to<std::vector>();
 
-            auto result = send_mdns_query(queries.data(), queries.size());
-            if (!result.has_value()) {
-                return std::unexpected(std::move(result).error());
+            if (!queries.empty()) {
+                auto result = send_mdns_query(queries.data(), queries.size());
+                if (!result.has_value()) {
+                    return std::unexpected(std::move(result).error());
+                }
             }
 
             return std::move(m_query_results);

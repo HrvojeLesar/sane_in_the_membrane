@@ -12,6 +12,7 @@
 #include <qmainwindow.h>
 #include <qpushbutton.h>
 #include "../Utils/Globals.hpp"
+#include "../Utils/mDNS/mDnsAutoFind.hpp"
 
 namespace sane_in_the_membrane::ui {
     class CMainApp {
@@ -21,9 +22,8 @@ namespace sane_in_the_membrane::ui {
 
             grpc::ChannelArguments args;
             args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
-            auto g = utils::Globals::init("localhost:50051", grpc::InsecureChannelCredentials(), args);
 
-            g->channel_state_change_watcher()->start();
+            auto g = utils::Globals::init("localhost:12345", nullptr, args);
 
             m_main_window = std::make_unique<CMainWindow>();
         }
@@ -33,6 +33,9 @@ namespace sane_in_the_membrane::ui {
         }
 
         int exec() {
+            utils::Globals::channel_state_change_watcher()->start();
+            sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
+
             return m_app.exec();
         }
 
