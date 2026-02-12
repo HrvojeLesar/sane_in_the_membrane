@@ -2,10 +2,12 @@
 #define SERVICE_CHANNEL_STATE_CHANGE_SERVICE
 
 #include <atomic>
+#include <condition_variable>
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/completion_queue.h>
 #include <memory>
+#include <mutex>
 #include <qobject.h>
 #include <thread>
 #include "SynchronizedAccess.hpp"
@@ -42,6 +44,7 @@ namespace sane_in_the_membrane::service {
 
       public:
         CChangeStateWatcher(std::shared_ptr<grpc::Channel> channel);
+        CChangeStateWatcher(std::shared_ptr<grpc::Channel> channel, std::chrono::seconds interval);
         ~CChangeStateWatcher();
 
         void start();
@@ -54,10 +57,12 @@ namespace sane_in_the_membrane::service {
         void                               start_impl();
 
         std::shared_ptr<grpc::Channel>     m_channel;
-        grpc::CompletionQueue              m_completion_queue{};
         std::unique_ptr<std::thread>       m_thread;
         std::atomic<bool>                  m_started{false};
         utils::UniqueAccess<CChannelState> m_state{};
+        std::chrono::seconds               m_interval{};
+        std::mutex                         m_mutex{};
+        std::condition_variable            m_cv{};
     };
 }
 

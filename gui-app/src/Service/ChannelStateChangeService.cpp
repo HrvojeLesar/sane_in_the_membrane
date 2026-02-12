@@ -1,8 +1,4 @@
 #include "ChannelStateChangeService.hpp"
-#include <atomic>
-#include <grpc/support/time.h>
-#include <qtmetamacros.h>
-#include <thread>
 
 sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState() : m_state(std::nullopt) {}
 sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState(grpc_connectivity_state state) : m_state(state) {}
@@ -30,7 +26,9 @@ void sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::set(grpc
     m_state = new_state;
 }
 
-sane_in_the_membrane::service::CChangeStateWatcher::CChangeStateWatcher(std::shared_ptr<grpc::Channel> channel) : m_channel(channel), m_thread(nullptr), m_state() {}
+sane_in_the_membrane::service::CChangeStateWatcher::CChangeStateWatcher(std::shared_ptr<grpc::Channel> channel) : m_channel(channel), m_thread(nullptr), m_state(), m_interval(5) {}
+sane_in_the_membrane::service::CChangeStateWatcher::CChangeStateWatcher(std::shared_ptr<grpc::Channel> channel, std::chrono::seconds interval) :
+    m_channel(channel), m_thread(nullptr), m_state(), m_interval(interval) {}
 
 sane_in_the_membrane::service::CChangeStateWatcher::~CChangeStateWatcher() {
     if (m_thread.get() != nullptr && m_thread->joinable()) {
@@ -39,32 +37,28 @@ sane_in_the_membrane::service::CChangeStateWatcher::~CChangeStateWatcher() {
 }
 
 void sane_in_the_membrane::service::CChangeStateWatcher::start() {
-    if (!m_started.load(std::memory_order::relaxed)) {
-        m_thread = std::make_unique<std::thread>(&CChangeStateWatcher::start_impl, this);
-        m_started.store(true, std::memory_order::relaxed);
+    if (!m_started) {
+        m_started = true;
+        m_thread  = std::make_unique<std::thread>(&CChangeStateWatcher::start_impl, this);
     }
 }
 
 void sane_in_the_membrane::service::CChangeStateWatcher::stop() {
-    m_completion_queue.Shutdown();
-    m_started.store(false, std::memory_order::relaxed);
+    {
+        std::lock_guard lock{m_mutex};
+        m_started = false;
+    }
+    m_cv.notify_all();
 }
 
 void sane_in_the_membrane::service::CChangeStateWatcher::start_impl() {
-    while (m_started.load(std::memory_order::relaxed)) {
-        auto last_observed = m_channel->GetState(true);
+    while (m_started) {
+        {
+            std::unique_lock lock{m_mutex};
 
-        auto deadline = std::chrono::system_clock::now() + TIMEOUT_TIME;
-
-        m_channel->NotifyOnStateChange(last_observed, deadline, &m_completion_queue, nullptr);
-
-        void* tag = nullptr;
-        bool  ok  = false;
-
-        if (!m_completion_queue.Next(&tag, &ok)) {
-            break;
+            if (m_cv.wait_for(lock, m_interval, [this] { return !m_started; }))
+                return;
         }
-
         auto state_guard = m_state.access();
         state_guard->set(m_channel->GetState(false));
 

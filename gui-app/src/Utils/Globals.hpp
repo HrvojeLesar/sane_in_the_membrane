@@ -35,7 +35,7 @@ namespace sane_in_the_membrane::utils {
                 m_get_scanner_service(std::make_shared<service::CGetScannersService>(m_stub)),
                 m_refresh_scanner_service(std::make_shared<service::CRefreshScannersService>(m_stub)), m_device_list(std::make_shared<service::CDeviceList>(m_get_scanner_service)),
                 m_scan_response_reader(std::make_shared<reader::CScanResponseReader>(m_stub)), m_state_change_watcher(std::make_shared<service::CChangeStateWatcher>(m_channel)),
-                m_file_manager() {}
+                m_file_manager(std::make_shared<service::CFileManager>()) {}
 
             std::shared_ptr<grpc::Channel>                     m_channel;
             std::shared_ptr<scanner::v1::ScannerService::Stub> m_stub;
