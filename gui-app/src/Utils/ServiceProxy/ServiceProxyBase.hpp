@@ -10,7 +10,6 @@ namespace sane_in_the_membrane::utils::proxy {
       protected:
         CServiceProxyBase() = delete;
 
-        CServiceProxyBase(CServiceProxyBase&& other) : m_service(std::move(other.m_service)) {}
         CServiceProxyBase(const std::shared_ptr<T>& service) : m_service(service) {}
 
         virtual ~CServiceProxyBase() = default;

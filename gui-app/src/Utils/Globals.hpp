@@ -1,6 +1,7 @@
 #ifndef UTILS_GLOBALS
 #define UTILS_GLOBALS
 
+#include <atomic>
 #include <grpcpp/channel.h>
 #include <grpcpp/grpcpp.h>
 #include <memory>
@@ -18,16 +19,14 @@
 #include "ServiceProxy/RefreshScannersServiceProxy.hpp"
 #include "ServiceProxy/ScanResponseReaderProxy.hpp"
 
+#include "../GlobalLogger.cpp"
+
 namespace sane_in_the_membrane::utils {
     class CGlobalsChangeReactor;
 
     class Globals {
-        struct CGlobalsInner;
-        struct CProxies;
-
       public:
-        Globals(CGlobalsInner inner) : m_inner(inner), m_proxies(new CProxies{inner}) {}
-        Globals(CGlobalsInner inner, std::shared_ptr<CProxies> proxies) : m_inner(inner), m_proxies(std::move(proxies)) {}
+        Globals() : m_proxies(nullptr), m_services(nullptr) {}
 
       private:
         struct CServices {
@@ -48,12 +47,20 @@ namespace sane_in_the_membrane::utils {
             std::shared_ptr<service::CFileManager>             m_file_manager;
         };
 
-        struct CProxies {
-            CProxies() = delete;
-            CProxies(CGlobalsInner& inner) :
-                m_change_state_watcher_proxy(inner.m_services.m_state_change_watcher), m_device_list_proxy(inner.m_services.m_device_list),
-                m_get_scanner_service_proxy(inner.m_services.m_get_scanner_service), m_refresh_scanner_service_proxy(inner.m_services.m_refresh_scanner_service),
-                m_scan_response_reader_proxy(inner.m_services.m_scan_response_reader) {}
+        struct SProxies {
+            SProxies() = delete;
+            SProxies(CServices& services) :
+                m_change_state_watcher_proxy(services.m_state_change_watcher), m_device_list_proxy(services.m_device_list),
+                m_get_scanner_service_proxy(services.m_get_scanner_service), m_refresh_scanner_service_proxy(services.m_refresh_scanner_service),
+                m_scan_response_reader_proxy(services.m_scan_response_reader) {}
+
+            void replace_services(CServices& services) {
+                m_change_state_watcher_proxy.replace_service(services.m_state_change_watcher);
+                m_device_list_proxy.replace_service(services.m_device_list);
+                m_get_scanner_service_proxy.replace_service(services.m_get_scanner_service);
+                m_refresh_scanner_service_proxy.replace_service(services.m_refresh_scanner_service);
+                m_scan_response_reader_proxy.replace_service(services.m_scan_response_reader);
+            }
 
             proxy::CChangeStateWatcher      m_change_state_watcher_proxy;
             proxy::CDeviceListProxy         m_device_list_proxy;
@@ -62,61 +69,60 @@ namespace sane_in_the_membrane::utils {
             proxy::CScanResponseReaderProxy m_scan_response_reader_proxy;
         };
 
-        struct CGlobalsInner {
-            CGlobalsInner(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) :
-                m_services(connect_to, creds, args) {}
-
-            CServices m_services;
-        };
-
       public:
-        static std::shared_ptr<CProxies> get() {
-            if (g_instance == nullptr) {
-                SITM_ASSERT(0, "Use of globals before initialization");
-            }
+        static Globals& get_instance() {
+            static Globals instance;
 
-            return g_instance->m_proxies;
+            return instance;
         }
 
-        static std::shared_ptr<Globals> init(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
-            if (g_instance.get() == nullptr) {
-                g_instance = std::make_shared<utils::Globals>(CGlobalsInner{connect_to, creds, args});
-            }
+        void init(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
+            if (m_initialized)
+                return;
 
-            return g_instance;
+            m_services = std::make_unique<CServices>(connect_to, creds, args);
+            m_proxies  = std::make_unique<SProxies>(*m_services);
+
+            if (!m_initialized)
+                m_initialized = true;
         }
 
-        static std::shared_ptr<Globals> change_channel(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
-            if (g_instance == nullptr) {
+        void change_channel(const std::string& connect_to, const std::shared_ptr<grpc::ChannelCredentials>& creds, const grpc::ChannelArguments args) {
+            if (!m_initialized)
                 SITM_ASSERT(0, "Use of globals before initialization");
-            }
 
-            g_instance->channel_state_change_watcher()->stop();
-            g_instance = std::make_shared<utils::Globals>(CGlobalsInner{connect_to, creds, args}, std::move(g_instance->m_proxies));
+            g_logger.log(INFO, std::format("Changing address to: {}", connect_to));
 
-            return g_instance;
+            m_services->m_state_change_watcher->stop();
+            auto services = std::make_unique<CServices>(connect_to, creds, args);
+            m_services.swap(services);
+            m_services->m_state_change_watcher->start();
+
+            m_proxies->replace_services(*m_services);
         }
 
-        static std::shared_ptr<service::CFileManager> file_manager() {
-            if (g_instance == nullptr) {
+        std::shared_ptr<service::CFileManager> file_manager() {
+            if (!m_initialized)
                 SITM_ASSERT(0, "Use of globals before initialization");
-            }
 
-            return g_instance->m_inner.m_services.m_file_manager;
+            return m_services->m_file_manager;
         }
 
-        static std::shared_ptr<service::CChangeStateWatcher> channel_state_change_watcher() {
-            if (g_instance == nullptr) {
+        std::shared_ptr<service::CChangeStateWatcher> channel_state_change_watcher() {
+            if (!m_initialized)
                 SITM_ASSERT(0, "Use of globals before initialization");
-            }
 
-            return g_instance->m_inner.m_services.m_state_change_watcher;
+            return m_services->m_state_change_watcher;
+        }
+
+        SProxies* proxies() const {
+            return m_proxies.get();
         }
 
       private:
-        static inline std::shared_ptr<Globals> g_instance{nullptr};
-        CGlobalsInner                          m_inner;
-        std::shared_ptr<CProxies>              m_proxies;
+        std::unique_ptr<SProxies>  m_proxies;
+        std::unique_ptr<CServices> m_services;
+        std::atomic<bool>          m_initialized;
     };
 
     class CGlobalsChangeReactor : public QObject {

@@ -17,7 +17,7 @@ CMainWindow::CMainWindow() {
     m_scanner_hbox = new QHBoxLayout();
 
     m_scan_button = new sane_in_the_membrane::ui::CScanButton(m_scanner_select);
-    QObject::connect(&utils::Globals::get()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_progress, m_progress_bar,
+    QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_progress, m_progress_bar,
                      [this](double progress) { this->m_progress_bar->setValue(progress); });
 
     m_scanner_hbox->addWidget(m_scanner_select);

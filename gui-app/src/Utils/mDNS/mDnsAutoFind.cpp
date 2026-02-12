@@ -1,11 +1,13 @@
 #include "mDnsAutoFind.hpp"
 #include "../../GlobalLogger.cpp"
+#include "../Globals.hpp"
+#include <grpcpp/support/channel_arguments.h>
 
 using namespace sane_in_the_membrane::utils::mdns;
 
 CMDnsAutoFinder::CMDnsAutoFinder() :
-    m_latch(1), m_worker([this]() {
-        m_latch.count_down();
+    m_worker([this]() {
+        discover_inner();
         while (true) {
             {
                 std::unique_lock lock{m_mutex};
@@ -17,7 +19,20 @@ CMDnsAutoFinder::CMDnsAutoFinder() :
 
             discover_inner();
         }
-    }) {};
+    }) {
+    QObject::connect(this, &CMDnsAutoFinder::sig_mdns_discovered, this, [this](const std::vector<SQueryResult>& discovered_connections) {
+        g_logger.log(INFO, "Trying to update mdns records");
+        if (!discovered_connections.empty()) {
+            grpc::ChannelArguments args{};
+            args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
+
+            utils::Globals::get_instance().change_channel(discovered_connections.at(0).as_address_with_port(), grpc::InsecureChannelCredentials(), args);
+        } else {
+            g_logger.log(INFO, "Mdns records empty");
+        }
+    });
+};
+
 CMDnsAutoFinder::~CMDnsAutoFinder() {
     {
         std::lock_guard lock(m_mutex);
@@ -35,7 +50,6 @@ CMDnsAutoFinder& CMDnsAutoFinder::get_instance() {
 }
 
 void CMDnsAutoFinder::discover() {
-    m_latch.wait();
     m_condition_variable.notify_one();
 }
 

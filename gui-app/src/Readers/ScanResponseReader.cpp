@@ -74,5 +74,5 @@ void reader::CScanResponseReader::reset_context() {
 }
 
 void reader::CScanResponseReader::start_new_file() {
-    m_current_file = utils::Globals::file_manager()->new_temp_file();
+    m_current_file = utils::Globals::get_instance().file_manager()->new_temp_file();
 }

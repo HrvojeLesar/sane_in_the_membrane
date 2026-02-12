@@ -8,7 +8,8 @@
 using namespace sane_in_the_membrane;
 
 ui::CScannerSelect::CScannerSelect(QWidget* parent) : QComboBox() {
-    QObject::connect(&utils::Globals::get()->m_device_list_proxy, &utils::proxy::CDeviceListProxy::sig_scanners_changed, this, &CScannerSelect::sl_scanners_changed);
+    QObject::connect(&utils::Globals::get_instance().proxies()->m_device_list_proxy, &utils::proxy::CDeviceListProxy::sig_scanners_changed, this,
+                     &CScannerSelect::sl_scanners_changed);
 }
 
 void ui::CScannerSelect::sl_scanners_changed(const utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
@@ -16,7 +17,7 @@ void ui::CScannerSelect::sl_scanners_changed(const utils::SharedAccessGuard<std:
 }
 
 void ui::CScannerSelect::display_items() {
-    const auto& m_scanner_items = utils::Globals::get()->m_device_list_proxy.get_scanners();
+    const auto& m_scanner_items = utils::Globals::get_instance().proxies()->m_device_list_proxy.get_scanners();
     display_items(m_scanner_items);
 }
 

@@ -23,17 +23,17 @@ namespace sane_in_the_membrane::ui {
             grpc::ChannelArguments args;
             args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
 
-            auto g = utils::Globals::init("localhost:12345", nullptr, args);
+            utils::Globals::get_instance().init("localhost:12345", nullptr, args);
 
             m_main_window = std::make_unique<CMainWindow>();
         }
 
         ~CMainApp() {
-            utils::Globals::channel_state_change_watcher()->stop();
+            utils::Globals::get_instance().channel_state_change_watcher()->stop();
         }
 
         int exec() {
-            utils::Globals::channel_state_change_watcher()->start();
+            utils::Globals::get_instance().channel_state_change_watcher()->start();
             sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
 
             return m_app.exec();

@@ -40,6 +40,10 @@ namespace sane_in_the_membrane::utils::mdns {
         std::string  address;
         uint16_t     port;
         EAddressType address_type;
+
+        std::string  as_address_with_port() const {
+            return std::format("{}:{}", address, port);
+        }
     };
 
     // Most implementation from mdns.c, credits to https://github.com/mjansson/mdns
