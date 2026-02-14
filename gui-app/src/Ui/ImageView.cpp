@@ -95,7 +95,7 @@ uint32_t CImageItem::get_page_number() {
 }
 
 CImageView::CImageView(std::string filepath, QWidget* parent) :
-    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new QScrollArea(this)),
+    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new image::CImageHorizontalScroll(this)),
     m_save(new QPushButton("Save", this)) {
     QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_done, this, &CImageView::sl_sig_done);
 

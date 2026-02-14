@@ -24,6 +24,7 @@
 #include "../Utils/ScannerUtils.hpp"
 #include "Image/ImageToolbar.hpp"
 #include <SynchronizedAccess.hpp>
+#include "Image/ImageHorizontalScroll.hpp"
 
 namespace sane_in_the_membrane::ui {
     enum EMovePage : uint8_t {
@@ -82,12 +83,12 @@ namespace sane_in_the_membrane::ui {
         void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
 
       private:
-        QVBoxLayout* const          m_main_layout;
-        QWidget* const              m_image_container;
-        QHBoxLayout* const          m_grid;
-        QScrollArea* const          m_scroll;
-        QPushButton* const          m_save;
-        utils::UniqueAccess<size_t> m_item_count{0};
+        QVBoxLayout* const                   m_main_layout;
+        QWidget* const                       m_image_container;
+        QHBoxLayout* const                   m_grid;
+        image::CImageHorizontalScroll* const m_scroll;
+        QPushButton* const                   m_save;
+        utils::UniqueAccess<size_t>          m_item_count{0};
     };
 }
 
