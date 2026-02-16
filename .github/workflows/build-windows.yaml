@@ -1,0 +1,45 @@
+name: Create windows binary
+on:
+  workflow_dispatch:
+
+jobs:
+  build-sane_in_the_membrane-gui:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4.3.0
+        with:
+          cache: true
+          cache-key-prefix: ${{ runner.os }}-QtCache-6.7.1
+          version: 6.7.1
+
+      - name: Install dev tools
+        run: |
+          choco install nasm ninja cmake -y
+
+      - name: Enable Developer Command Prompt (Windows)
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -GNinja
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --parallel
+
+      - name: Upload artifact (Windows - binary)
+        uses: actions/upload-artifact@v6
+        with:
+          name: Gui.exe
+          path: build/gui-app/Gui.exe
+
+      - name: Dump CMake error log
+        if: failure()
+        shell: pwsh
+        run: |
+          if (Test-Path build/CMakeFiles/CMakeError.log) {
+            Get-Content build/CMakeFiles/CMakeError.log
+          }
