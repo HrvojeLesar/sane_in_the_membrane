@@ -22,9 +22,24 @@ jobs:
       - name: Enable Developer Command Prompt (Windows)
         uses: ilammy/msvc-dev-cmd@v1.13.0
 
+      - name: Cache CMake build
+        uses: actions/cache@v5
+        with:
+          path: build
+          key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-build-
+
       - name: Configure
         shell: pwsh
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -GNinja
+
+      - name: Deploy Qt with windeployqt
+        shell: pwsh
+        run: |
+          $exePath = "build/gui-app/Gui.exe"
+          windeployqt --release --dir "build/deploy" $exePath
+          Copy-Item $exePath -Destination "build/deploy"
 
       - name: Build
         shell: pwsh
@@ -33,13 +48,5 @@ jobs:
       - name: Upload artifact (Windows - binary)
         uses: actions/upload-artifact@v6
         with:
-          name: Gui.exe
-          path: build/gui-app/Gui.exe
-
-      - name: Dump CMake error log
-        if: failure()
-        shell: pwsh
-        run: |
-          if (Test-Path build/CMakeFiles/CMakeError.log) {
-            Get-Content build/CMakeFiles/CMakeError.log
-          }
+          name: Gui-Windows
+          path: build/deploy
