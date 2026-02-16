@@ -34,16 +34,16 @@ jobs:
         shell: pwsh
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -GNinja
 
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --parallel
+
       - name: Deploy Qt with windeployqt
         shell: pwsh
         run: |
           $exePath = "build/gui-app/Gui.exe"
           windeployqt --release --dir "build/deploy" $exePath
           Copy-Item $exePath -Destination "build/deploy"
-
-      - name: Build
-        shell: pwsh
-        run: cmake --build build --parallel
 
       - name: Upload artifact (Windows - binary)
         uses: actions/upload-artifact@v6
