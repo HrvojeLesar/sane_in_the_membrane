@@ -13,4 +13,4 @@ target_include_directories(sane_in_the_membrane_utils_lib
 )
 
 set_target_properties(sane_in_the_membrane_utils_lib PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_options(sane_in_the_membrane_utils_lib PRIVATE ${COMPILER_WARNING_FLAGS})
+target_compile_features(sane_in_the_membrane_utils_lib PUBLIC cxx_std_23)

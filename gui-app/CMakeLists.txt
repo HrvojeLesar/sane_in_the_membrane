@@ -44,9 +44,15 @@ target_link_libraries(gui_lib
     hpdf::hpdf
     mdns::mdns
 )
+target_compile_definitions(gui_lib PRIVATE
+    NOMINMAX
+)
+target_compile_features(gui_lib PUBLIC cxx_std_23)
 
-add_executable(Gui src/main.cpp)
+if (NOT WIN32)
+    add_executable(Gui src/main.cpp)
+else()
+    add_executable(Gui WIN32 src/main.cpp)
+endif()
 
 target_link_libraries(Gui PRIVATE gui_lib)
-
-target_compile_options(Gui PRIVATE ${COMPILER_WARNING_FLAGS})

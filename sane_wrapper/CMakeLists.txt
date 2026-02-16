@@ -20,3 +20,4 @@ target_link_libraries(sane_in_the_membrane_lib
 )
 
 target_compile_options(sane_in_the_membrane_lib PRIVATE ${COMPILER_WARNING_FLAGS})
+target_compile_features(sane_in_the_membrane_lib PUBLIC cxx_std_23)

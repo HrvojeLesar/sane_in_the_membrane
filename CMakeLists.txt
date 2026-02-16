@@ -1,16 +1,14 @@
 cmake_minimum_required(VERSION 4.2)
 
-project(unnamed-scanner-project LANGUAGES CXX)
+project(sane_in_the_membrane LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 OPTION(WITH_ASAN "Compiles binary with asan" OFF)
 OPTION(BUILD_GUI "Builds gui executable" ON)
 OPTION(BUILD_SERVER "Builds server executable" ON)
 
+# This it not portable across platforms
 if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES DEBUG)
     message(STATUS "CMake DEBUG mode")
     if (WITH_ASAN)
@@ -28,10 +26,14 @@ if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES DEBUG)
     endif()
 else()
     message(STATUS "CMake RELEASE mode")
-    add_compile_options(-O3)
+    if (NOT MSVC)
+        add_compile_options(-O3)
+    endif()
 endif()
 
-set(COMPILER_WARNING_FLAGS
+# This it not portable across platforms
+if (NOT MSVC)
+    set(COMPILER_WARNING_FLAGS
     -Wall
     -Wextra
     -Wpedantic
@@ -40,7 +42,8 @@ set(COMPILER_WARNING_FLAGS
     -Wno-missing-field-initializers
     -Wno-narrowing
     -Werror
-)
+    )
+endif()
 
 add_subdirectory(utils)
 add_subdirectory(proto_lib)

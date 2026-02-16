@@ -28,7 +28,7 @@ using namespace sane_in_the_membrane::utils::pdf;
 
 CImageItem::~CImageItem() {}
 CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, uint32_t page_number, QWidget* parent) :
-    QWidget(parent), m_file(file), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)), m_pixmap(QString::fromStdString(file->path())),
+    QWidget(parent), m_file(file), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)), m_pixmap(QString::fromStdString(file->path().string())),
     m_toolbar(new image::CImageToolbar{page_number}), m_page_number(page_number) {
 
     QObject::connect(m_toolbar->m_btn_rotate_left, &QPushButton::clicked, this, [this]() {
@@ -95,8 +95,8 @@ uint32_t CImageItem::get_page_number() {
 }
 
 CImageView::CImageView(std::string filepath, QWidget* parent) :
-    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)), m_scroll(new image::CImageHorizontalScroll(this)),
-    m_save(new QPushButton("Save", this)) {
+    QWidget(parent), m_main_layout(new QVBoxLayout(this)), m_image_container(new QWidget()), m_grid(new QHBoxLayout(m_image_container)),
+    m_scroll(new image::CImageHorizontalScroll(this)), m_save(new QPushButton("Save", this)) {
     QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_done, this, &CImageView::sl_sig_done);
 
     m_scroll->setWidgetResizable(true);
@@ -119,7 +119,7 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
 
         for (const auto& item : get_image_items()) {
             const auto file = item.second->file();
-            pdf.add_jpeg(file->path());
+            pdf.add_jpeg(file->path().string());
         }
 
         pdf.save(filename.toStdString());
@@ -203,7 +203,7 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     auto   file_data  = file->read();
 
     QImage img{file_data.data(), static_cast<int>(params->width()), static_cast<int>(params->height()), params->bytes_per_line, QImage::Format::Format_RGB888};
-    img.save(image_file->path().c_str(), "jpg");
+    img.save(image_file->path().string().c_str(), "jpg");
 
     add_image(image_file);
 }
