@@ -389,7 +389,7 @@ std::expected<void, std::string> CMDns::send_mdns_query(mdns_query_t* query, siz
     }
 
     int res;
-    g_logger.log(ERR, "Reading mDNS query replies\n");
+    g_logger.log(ERR, "Reading mDNS query replies");
     int records = 0;
     do {
         struct timeval timeout;

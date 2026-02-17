@@ -108,7 +108,7 @@ void CScanResponseReactor::start_scan() {
 
     status = m_device->refresh_parameters();
     if (!status.is_ok()) {
-        g_logger.log(DEBUG, std::format("Failed to refresh parameters: {}\n", status.str_status()));
+        g_logger.log(DEBUG, std::format("Failed to refresh parameters: {}", status.str_status()));
         return Finish(grpc::Status(grpc::StatusCode::CANCELLED, std::format("Failed to start device: {}", status.str_status())));
     }
 

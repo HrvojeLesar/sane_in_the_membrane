@@ -15,10 +15,12 @@ namespace sane_in_the_membrane::utils::proxy {
 
         virtual void set_connections() override {
             QObject::connect(m_service.get(), &service::CChangeStateWatcher::sig_channel_state_changed, this, &CChangeStateWatcher::sig_channel_state_changed);
+            QObject::connect(m_service.get(), &service::CChangeStateWatcher::sig_stopping_auto_discovery, this, &CChangeStateWatcher::sig_stopping_auto_discovery);
         }
 
       signals:
         void sig_channel_state_changed(service::CChangeStateWatcher::CChannelState state);
+        void sig_stopping_auto_discovery();
     };
 }
 

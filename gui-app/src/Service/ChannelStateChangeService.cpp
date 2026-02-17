@@ -1,22 +1,20 @@
 #include "ChannelStateChangeService.hpp"
+#include "../GlobalLogger.cpp"
+#include "../Utils/mDNS/mDnsAutoFind.hpp"
 
-sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState() : m_state(std::nullopt) {}
+sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState() : m_state() {}
 sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState(grpc_connectivity_state state) : m_state(state) {}
-const std::optional<grpc_connectivity_state> sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::get() const {
+const grpc_connectivity_state sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::get() const {
     return m_state;
 }
 constexpr const char* sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::as_str() const {
-    if (m_state.has_value()) {
-        switch (m_state.value()) {
-            case GRPC_CHANNEL_IDLE: return "IDLE";
-            case GRPC_CHANNEL_CONNECTING: return "CONNECTING";
-            case GRPC_CHANNEL_READY: return "READY";
-            case GRPC_CHANNEL_TRANSIENT_FAILURE: return "TRANSIENT_FAILURE";
-            case GRPC_CHANNEL_SHUTDOWN: return "SHUTDOWN";
-            default: return UNKNOWN_STATE;
-        }
-    } else {
-        return UNKNOWN_STATE;
+    switch (m_state) {
+        case GRPC_CHANNEL_IDLE: return "IDLE";
+        case GRPC_CHANNEL_CONNECTING: return "CONNECTING";
+        case GRPC_CHANNEL_READY: return "READY";
+        case GRPC_CHANNEL_TRANSIENT_FAILURE: return "TRANSIENT_FAILURE";
+        case GRPC_CHANNEL_SHUTDOWN: return "SHUTDOWN";
+        default: return UNKNOWN_STATE;
     }
 }
 const std::string sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::to_string() const {
@@ -60,7 +58,28 @@ void sane_in_the_membrane::service::CChangeStateWatcher::start_impl() {
                 return;
         }
         auto state_guard = m_state.access();
-        state_guard->set(m_channel->GetState(false));
+        auto state       = m_channel->GetState(true);
+
+        auto connection_failure_count_guard = m_connection_failure_count.access();
+
+        if (state == grpc_connectivity_state::GRPC_CHANNEL_TRANSIENT_FAILURE && *connection_failure_count_guard < AUTO_CONNECT_MAX_TRIES) {
+            g_logger.log(DEBUG, "Trying server discovery");
+            *connection_failure_count_guard += 1;
+            sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
+
+            if (*connection_failure_count_guard == AUTO_CONNECT_MAX_TRIES)
+                emit sig_stopping_auto_discovery();
+        }
+
+        if (state_guard->get() == state)
+            continue;
+
+        state_guard->set(state);
+
+        if (state_guard->get() == grpc_connectivity_state::GRPC_CHANNEL_IDLE || state_guard->get() == grpc_connectivity_state::GRPC_CHANNEL_READY)
+            *connection_failure_count_guard = 0;
+
+        g_logger.log(DEBUG, std::format("State changed: {}", state_guard->as_str()));
 
         emit sig_channel_state_changed(*state_guard);
     }
