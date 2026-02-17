@@ -23,6 +23,7 @@ namespace sane_in_the_membrane::utils::mdns {
       public:
         static CMDnsAutoFinder& get_instance();
         void                    discover();
+        void                    interrupt();
 
       signals:
         void sig_discovering();
@@ -35,6 +36,7 @@ namespace sane_in_the_membrane::utils::mdns {
         std::condition_variable m_condition_variable{};
         std::mutex              m_mutex{};
         std::thread             m_worker;
+        std::atomic<bool>       m_interrupted{false};
     };
 }
 

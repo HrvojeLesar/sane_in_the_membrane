@@ -3,10 +3,36 @@
 #include "../Globals.hpp"
 #include <grpcpp/support/channel_arguments.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#else
+#include <csignal>
+#endif
+
 using namespace sane_in_the_membrane::utils::mdns;
+
+// TODO: See if sighandlers work on windows
+#if defined(__linux__) || defined(__APPLE__)
+void sig_handler(int signal_number) {}
+#else
+VOID CALLBACK sig_handler(int signal_number) {}
+#endif
+
+#define INTERRUPT_GUARD(return_value)                                                                                                                                              \
+    do {                                                                                                                                                                           \
+        if (m_interrupted) {                                                                                                                                                       \
+            m_interrupted = false;                                                                                                                                                 \
+            return return_value;                                                                                                                                                   \
+        }                                                                                                                                                                          \
+    } while (0)
 
 CMDnsAutoFinder::CMDnsAutoFinder() :
     m_worker([this]() {
+
+#if defined(__linux__) || defined(__APPLE__)
+        signal(SIGUSR1, sig_handler);
+#endif
         discover_inner();
         while (true) {
             {
@@ -19,6 +45,7 @@ CMDnsAutoFinder::CMDnsAutoFinder() :
 
             discover_inner();
         }
+        g_logger.log(DEBUG, "mDNS worker exiting");
     }) {
     QObject::connect(this, &CMDnsAutoFinder::sig_mdns_discovered, this, [this](const std::vector<SQueryResult>& discovered_connections) {
         g_logger.log(INFO, "Trying to update mdns records");
@@ -67,6 +94,8 @@ void CMDnsAutoFinder::discover_inner() {
         return;
     }
 
+    INTERRUPT_GUARD();
+
     auto query_result = mdns.query_services();
     if (!query_result.has_value()) {
         g_logger.log(ERR, discover_result.error());
@@ -75,4 +104,24 @@ void CMDnsAutoFinder::discover_inner() {
     }
 
     emit sig_mdns_discovered(query_result.value());
+
+    INTERRUPT_GUARD();
 }
+
+#ifdef _WIN32
+void CMDnsAutoFinder::interrupt() {}
+#else
+void CMDnsAutoFinder::interrupt() {
+    std::lock_guard lock(m_mutex);
+    g_logger.log(DEBUG, "Received interrupt");
+    if (!m_worker.joinable())
+        return;
+
+    m_interrupted = true;
+#if defined(__linux__) || defined(__APPLE__)
+    pthread_kill(m_worker.native_handle(), SIGUSR1);
+#else
+    QueueUserAPC(MyAPC, m_worker.native_handle(), 10);
+#endif
+}
+#endif

@@ -1,6 +1,7 @@
 #include "MainWindow.hpp"
 #include "../Utils/Globals.hpp"
 #include "ImageView.hpp"
+#include "../Utils/mDNS/mDnsAutoFind.hpp"
 
 using namespace sane_in_the_membrane::ui;
 
@@ -48,11 +49,13 @@ void CMainWindow::closeEvent(QCloseEvent* event) {
     confirm_box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     confirm_box.setDefaultButton(QMessageBox::Ok);
 
-    auto exec_status = confirm_box.exec();
+    auto  exec_status = confirm_box.exec();
 
     switch (exec_status) {
         case QMessageBox::Ok:
-        case QMessageBox::Close: break;
+        case QMessageBox::Close: 
+            sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().interrupt();
+            event->accept(); break;
 
         case QMessageBox::Cancel:
         default: event->ignore(); break;
