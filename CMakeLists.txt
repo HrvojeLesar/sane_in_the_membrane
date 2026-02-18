@@ -27,6 +27,7 @@ if (STATIC_WINDOWS_BUILD)
         -S ${CMAKE_SOURCE_DIR}/cmake/qt
         -B ${QT_BUILD_PATH}
         -DQT6_INSTALL_PREFIX=${QT6_INSTALL_PREFIX}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -GNinja
         RESULT_VARIABLE command_result
     )
