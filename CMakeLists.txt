@@ -17,7 +17,7 @@ endif()
 if (STATIC_WINDOWS_BUILD)
     message("Building QT as static library")
 
-    if(QT6_INSTALL_PREFIX STREQUAL "")
+    if(QT6_INSTALL_PREFIX STREQUAL "" OR NOT QT6_INSTALL_PREFIX)
         set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)
     endif()
     set(QT_BUILD_PATH ${CMAKE_BINARY_DIR}/qt-static)
@@ -39,7 +39,6 @@ if (STATIC_WINDOWS_BUILD)
         ${CMAKE_COMMAND}
         --build ${QT_BUILD_PATH}
         --parallel
-        --verbose
         RESULT_VARIABLE command_result
     )
 
@@ -50,7 +49,6 @@ if (STATIC_WINDOWS_BUILD)
     execute_process(COMMAND
         ${CMAKE_COMMAND}
         --install ${QT_BUILD_PATH}
-        --verbose
         RESULT_VARIABLE command_result
     )
 
