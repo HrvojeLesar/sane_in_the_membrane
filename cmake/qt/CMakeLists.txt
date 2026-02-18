@@ -33,4 +33,7 @@ ExternalProject_Add(qt6
     BINARY_DIR ${CMAKE_BINARY_DIR}/_deps/qt6-build
     INSTALL_DIR ${QT6_INSTALL_PREFIX}
     CMAKE_ARGS ${QT6_CMAKE_ARGS}
+
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --parallel
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR>
 )

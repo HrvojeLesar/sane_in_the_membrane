@@ -20,22 +20,43 @@ if (STATIC_WINDOWS_BUILD)
     if(QT6_INSTALL_PREFIX STREQUAL "")
         set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)
     endif()
-    set(qt_build_path ${CMAKE_BINARY_DIR}/qt-static)
+    set(QT_BUILD_PATH ${CMAKE_BINARY_DIR}/qt-static)
 
     execute_process(COMMAND
         ${CMAKE_COMMAND}
         -S ${CMAKE_SOURCE_DIR}/cmake/qt
-        -B ${qt_build_path}
+        -B ${QT_BUILD_PATH}
         -DQT6_INSTALL_PREFIX=${QT6_INSTALL_PREFIX}
         -GNinja
+        RESULT_VARIABLE command_result
     )
+
+    if (command_result)
+        message(FATAL_ERROR "Qt bootstrap configure failed")
+    endif()
 
     execute_process(COMMAND
         ${CMAKE_COMMAND}
-        --build ${qt_build_path}
+        --build ${QT_BUILD_PATH}
         --parallel
         --verbose
+        RESULT_VARIABLE command_result
     )
+
+    if (command_result)
+        message(FATAL_ERROR "Qt bootstrap build failed")
+    endif()
+
+    execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        --install ${QT_BUILD_PATH}
+        --verbose
+        RESULT_VARIABLE command_result
+    )
+
+    if (command_result)
+        message(FATAL_ERROR "Qt bootstrap install failed")
+    endif()
 
     list(PREPEND CMAKE_PREFIX_PATH ${QT6_INSTALL_PREFIX})
 endif()
