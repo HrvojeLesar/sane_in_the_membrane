@@ -8,13 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install Qt6
-        uses: jurplel/install-qt-action@v4.3.0
-        with:
-          cache: true
-          cache-key-prefix: ${{ runner.os }}-QtCache-6.7.1
-          version: 6.7.1
-
       - name: Install dev tools
         run: |
           choco install nasm ninja cmake -y
@@ -26,9 +19,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: build
-          key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/CMakeLists.txt') }}
+          key: ${{ runner.os }}-cmake-build-static-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-build-
+            ${{ runner.os }}-cmake-build-static-
 
       - name: Configure
         shell: pwsh

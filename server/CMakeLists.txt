@@ -23,3 +23,8 @@ target_link_libraries(Server
 )
 
 target_compile_options(Server PRIVATE ${COMPILER_WARNING_FLAGS})
+
+target_include_directories(server_lib
+    SYSTEM PUBLIC
+        ${grpc_SOURCE_DIR}/third_party/abseil-cpp
+)

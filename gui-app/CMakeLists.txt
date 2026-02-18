@@ -6,7 +6,7 @@ file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
 if (STATIC_WINDOWS_BUILD)
     include(${CMAKE_SOURCE_DIR}/cmake/build-qt.cmake)
-    set(CMAKE_PREFIX_PATH ${QT6_INSTALL_PREFIX})
+    list(PREPEND CMAKE_PREFIX_PATH ${QT6_INSTALL_PREFIX})
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
