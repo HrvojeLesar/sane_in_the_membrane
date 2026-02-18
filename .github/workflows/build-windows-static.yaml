@@ -27,10 +27,6 @@ jobs:
         shell: pwsh
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSTATIC_WINDOWS_BUILD=ON -GNinja
 
-      - name: Build Qt6
-        shell: pwsh
-        run: cmake --build build --target qt6 --parallel
-
       - name: Build
         shell: pwsh
         run: cmake --build build --parallel

@@ -8,9 +8,36 @@ OPTION(WITH_ASAN "Compiles binary with asan" OFF)
 OPTION(BUILD_GUI "Builds gui executable" ON)
 OPTION(BUILD_SERVER "Builds server executable" ON)
 OPTION(STATIC_WINDOWS_BUILD "Builds a static windows binary" ON)
+OPTION(QT6_INSTALL_PREFIX "Qt install prefix" "")
 
 if (NOT WIN32)
     set(STATIC_WINDOWS_BUILD OFF)
+endif()
+
+if (STATIC_WINDOWS_BUILD)
+    message("Building QT as static library")
+
+    if(QT6_INSTALL_PREFIX STREQUAL "")
+        set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)
+    endif()
+    set(qt_build_path ${CMAKE_BINARY_DIR}/qt-static)
+
+    execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        -S ${CMAKE_SOURCE_DIR}/cmake/qt
+        -B ${qt_build_path}
+        -DQT6_INSTALL_PREFIX=${QT6_INSTALL_PREFIX}
+        -GNinja
+    )
+
+    execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        --build ${qt_build_path}
+        --parallel
+        --verbose
+    )
+
+    list(PREPEND CMAKE_PREFIX_PATH ${QT6_INSTALL_PREFIX})
 endif()
 
 # This it not portable across platforms

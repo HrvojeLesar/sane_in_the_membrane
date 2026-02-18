@@ -1,10 +1,7 @@
-if (NOT STATIC_WINDOWS_BUILD)
-    return()
-endif()
+cmake_minimum_required(VERSION 4.2)
+project(qt_builder)
 
 include(ExternalProject)
-
-set(QT6_INSTALL_PREFIX "" CACHE PATH "Qt6 install prefix (optional)")
 
 if(QT6_INSTALL_PREFIX STREQUAL "")
     set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)
