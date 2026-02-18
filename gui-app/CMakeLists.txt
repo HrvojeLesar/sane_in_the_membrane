@@ -4,6 +4,11 @@ project(gui-app)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
+if (STATIC_WINDOWS_BUILD)
+    include(${CMAKE_SOURCE_DIR}/cmake/build-qt.cmake)
+    set(CMAKE_PREFIX_PATH ${QT6_INSTALL_PREFIX})
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
 set(FETCHCONTENT_QUIET OFF)
@@ -56,3 +61,8 @@ else()
 endif()
 
 target_link_libraries(Gui PRIVATE gui_lib)
+
+if (STATIC_WINDOWS_BUILD)
+    target_link_libraries(Gui PRIVATE Qt6::QWindowsIntegrationPlugin)
+    add_dependencies(Gui qt6)
+endif()

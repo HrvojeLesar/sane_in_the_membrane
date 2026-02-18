@@ -3,6 +3,7 @@
 
 #include <expected>
 #include <format>
+#include <optional>
 #include <vector>
 #include <string>
 extern "C" {

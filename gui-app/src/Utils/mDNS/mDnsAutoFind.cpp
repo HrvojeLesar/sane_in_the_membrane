@@ -19,11 +19,11 @@ void sig_handler(int signal_number) {}
 VOID CALLBACK sig_handler(int signal_number) {}
 #endif
 
-#define INTERRUPT_GUARD(return_value)                                                                                                                                              \
+#define INTERRUPT_GUARD(...)                                                                                                                                                       \
     do {                                                                                                                                                                           \
         if (m_interrupted) {                                                                                                                                                       \
             m_interrupted = false;                                                                                                                                                 \
-            return return_value;                                                                                                                                                   \
+            return __VA_ARGS__;                                                                                                                                                    \
         }                                                                                                                                                                          \
     } while (0)
 

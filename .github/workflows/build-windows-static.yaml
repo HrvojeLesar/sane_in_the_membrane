@@ -1,4 +1,4 @@
-name: Create windows binary
+name: Build windows static binary
 on:
   workflow_dispatch:
 
@@ -32,21 +32,14 @@ jobs:
 
       - name: Configure
         shell: pwsh
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSTATIC_WINDOWS_BUILD=OFF -GNinja
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSTATIC_WINDOWS_BUILD=ON -GNinja
 
       - name: Build
         shell: pwsh
         run: cmake --build build --parallel
 
-      - name: Deploy Qt with windeployqt
-        shell: pwsh
-        run: |
-          $exePath = "build/gui-app/Gui.exe"
-          windeployqt --release --dir "build/deploy" $exePath
-          Copy-Item $exePath -Destination "build/deploy"
-
       - name: Upload artifact (Windows - binary)
         uses: actions/upload-artifact@v6
         with:
           name: Gui-Windows
-          path: build/deploy
+          path: build/gui-app/Gui.exe

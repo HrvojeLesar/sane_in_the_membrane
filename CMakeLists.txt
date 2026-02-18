@@ -7,6 +7,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 OPTION(WITH_ASAN "Compiles binary with asan" OFF)
 OPTION(BUILD_GUI "Builds gui executable" ON)
 OPTION(BUILD_SERVER "Builds server executable" ON)
+OPTION(STATIC_WINDOWS_BUILD "Builds a static windows binary" ON)
+
+if (NOT WIN32)
+    set(STATIC_WINDOWS_BUILD OFF)
+endif()
 
 # This it not portable across platforms
 if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES DEBUG)
