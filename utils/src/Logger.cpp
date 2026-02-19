@@ -47,19 +47,62 @@ void CLogger::log(ELogLevel log_level, const std::string_view& message) {
     std::lock_guard<std::mutex> guard{m_log_mutex};
 
     std::string                 prefix{""};
+    std::string                 prefix_coloured{""};
     switch (log_level) {
-        case LOG_TRACE: prefix = "TRACE: "; break;
-        case LOG_DEBUG: prefix = "DEBUG: "; break;
-        case LOG_INFO: prefix = "INFO: "; break;
-        case LOG_WARN: prefix = "WARN: "; break;
-        case LOG_ERROR: prefix = "ERROR: "; break;
-        case LOG_CRITICAL: prefix = "CRITICAL: "; break;
+        case LOG_TRACE:
+            prefix          = "TRACE: ";
+            prefix_coloured = "\033[36mTRACE: \033[0m";
+            break;
+        case LOG_DEBUG:
+            prefix          = "DEBUG: ";
+            prefix_coloured = "\033[32mDEBUG: \033[0m";
+            break;
+        case LOG_INFO:
+            prefix          = "INFO: ";
+            prefix_coloured = "\033[34mINFO: \033[0m";
+            break;
+        case LOG_WARN:
+            prefix          = "WARN: ";
+            prefix_coloured = "\033[33mWARN: \033[0m";
+            break;
+        case LOG_ERROR:
+            prefix          = "ERROR: ";
+            prefix_coloured = "\033[31mERROR: \033[0m";
+            break;
+        case LOG_CRITICAL:
+            prefix          = "CRITICAL: ";
+            prefix_coloured = "\033[35mCRITICAL: \033[0m";
+            break;
     }
 
-    std::cout << prefix << message << "\n";
+    std::cout << (!m_enable_coloured_output ? prefix : prefix_coloured) << message << "\n";
     std::cout.flush();
 
     if (m_file_enabled) {
         m_file << prefix << message << "\n";
     }
+}
+
+void CLogger::trace(const std::string_view& message) {
+    log(ELogLevel::LOG_TRACE, message);
+}
+
+void CLogger::debug(const std::string_view& message) {
+    log(ELogLevel::LOG_DEBUG, message);
+}
+
+void CLogger::info(const std::string_view& message) {
+    log(ELogLevel::LOG_INFO, message);
+}
+
+void CLogger::warn(const std::string_view& message) {
+    log(ELogLevel::LOG_WARN, message);
+}
+
+void CLogger::error(const std::string_view& message) {
+    log(ELogLevel::LOG_ERROR, message);
+}
+
+void CLogger::critical(const std::string_view& message) {
+    log(ELogLevel::LOG_CRITICAL, message);
 }

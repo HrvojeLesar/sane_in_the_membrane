@@ -4,8 +4,10 @@
 #include <cstdint>
 #include <expected>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <mutex>
+#include <string>
 #include <string_view>
 namespace sane_in_the_membrane::utils {
 
@@ -31,6 +33,53 @@ namespace sane_in_the_membrane::utils {
         void                             set_stdout_enabled(bool enabled);
         std::expected<void, std::string> set_log_file(const std::filesystem::path& file);
         void                             log(ELogLevel log_level, const std::string_view& message);
+        template <typename... Args>
+        void log(ELogLevel log_level, const std::format_string<Args...> fmt, Args&&... args) {
+            if (log_level < m_level) {
+                return;
+            }
+
+            std::string message = std::vformat(fmt.get(), std::make_format_args(args...));
+
+            log(log_level, message);
+        }
+
+        void trace(const std::string_view& message);
+        void debug(const std::string_view& message);
+        void info(const std::string_view& message);
+        void warn(const std::string_view& message);
+        void error(const std::string_view& message);
+        void critical(const std::string_view& message);
+
+        template <typename... Args>
+        void trace(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_TRACE, fmt, args...);
+        }
+
+        template <typename... Args>
+        void debug(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_DEBUG, fmt, args...);
+        }
+
+        template <typename... Args>
+        void info(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_INFO, fmt, args...);
+        }
+
+        template <typename... Args>
+        void warn(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_WARN, fmt, args...);
+        }
+
+        template <typename... Args>
+        void error(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_ERROR, fmt, args...);
+        }
+
+        template <typename... Args>
+        void critical(const std::format_string<Args...> fmt, Args&&... args) {
+            log(ELogLevel::LOG_CRITICAL, fmt, args...);
+        }
 
       private:
         ELogLevel     m_level;
@@ -39,6 +88,7 @@ namespace sane_in_the_membrane::utils {
         bool          m_file_enabled{false};
         std::ofstream m_file;
         bool          m_stdout_enabled{true};
+        bool          m_enable_coloured_output{true};
     };
 }
 
