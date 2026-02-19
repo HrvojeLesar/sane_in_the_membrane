@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include <utility>
 namespace sane_in_the_membrane::utils {
 
     enum ELogLevel : uint8_t {
@@ -53,32 +54,32 @@ namespace sane_in_the_membrane::utils {
 
         template <typename... Args>
         void trace(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_TRACE, fmt, args...);
+            log(ELogLevel::LOG_TRACE, fmt, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void debug(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_DEBUG, fmt, args...);
+            log(ELogLevel::LOG_DEBUG, fmt, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void info(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_INFO, fmt, args...);
+            log(ELogLevel::LOG_INFO, fmt, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void warn(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_WARN, fmt, args...);
+            log(ELogLevel::LOG_WARN, fmt, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void error(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_ERROR, fmt, args...);
+            log(ELogLevel::LOG_ERROR, fmt, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void critical(const std::format_string<Args...> fmt, Args&&... args) {
-            log(ELogLevel::LOG_CRITICAL, fmt, args...);
+            log(ELogLevel::LOG_CRITICAL, fmt, std::forward<Args>(args)...);
         }
 
       private:
