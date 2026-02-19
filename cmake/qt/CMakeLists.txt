@@ -3,6 +3,8 @@ project(qt_builder)
 
 include(ExternalProject)
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
 if(QT6_INSTALL_PREFIX STREQUAL "")
     set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)
 endif()

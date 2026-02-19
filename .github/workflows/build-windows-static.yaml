@@ -20,8 +20,6 @@ jobs:
         with:
           path: build
           key: ${{ runner.os }}-cmake-build-static-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-cmake-build-static-
 
       - name: Configure
         shell: pwsh
