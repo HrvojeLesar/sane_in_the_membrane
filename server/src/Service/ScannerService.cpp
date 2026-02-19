@@ -3,7 +3,7 @@
 #include "../Reactors/ScanResponseReactor.hpp"
 #include "SaneDevice.hpp"
 #include <memory>
-#include "../GlobalLogger.cpp"
+#include <GLogger.hpp>
 
 using namespace scanner::v1;
 using namespace sane_in_the_membrane;
@@ -15,7 +15,7 @@ bool CScannerServiceImpl::should_refresh_devices() const {
 
 grpc::ServerUnaryReactor* CScannerServiceImpl::GetScanners(grpc::CallbackServerContext* context, const GetScannersRequest* request, GetScannersResponse* response) {
 
-    g_logger.log(DEBUG, "Getting scanners");
+    log::debug("Getting scanners");
     {
         if (m_devices.shared_access()->empty()) {
             refresh_devices();
@@ -44,7 +44,7 @@ grpc::ServerUnaryReactor* CScannerServiceImpl::GetScanners(grpc::CallbackServerC
 }
 
 grpc::ServerWriteReactor<ScanResponse>* CScannerServiceImpl::Scan(grpc::CallbackServerContext* context, const ScanRequest* request) {
-    g_logger.log(DEBUG, "Scanning");
+    log::debug("Scanning");
     std::shared_ptr<sane::CSaneDevice> device{};
     {
         auto& scanner_name = request->scanner_name();
@@ -69,14 +69,14 @@ std::shared_ptr<sane::CSaneDevice> CScannerServiceImpl::find_device(const std::s
 
 void CScannerServiceImpl::refresh_devices() {
     if (should_refresh_devices()) {
-        g_logger.log(DEBUG, "Refreshing scanners");
+        log::debug("Refreshing scanners");
         auto devices           = m_devices.access();
         auto last_device_fetch = m_last_device_fetch.access();
 
         *devices           = m_sane.get_devices();
         *last_device_fetch = std::chrono::system_clock::now();
     } else {
-        g_logger.log(DEBUG, "Skipped refreshing");
+        log::debug("Skipped refreshing");
     }
 }
 

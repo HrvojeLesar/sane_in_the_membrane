@@ -1,6 +1,6 @@
 #include "ChannelStateChangeService.hpp"
-#include "../GlobalLogger.cpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
+#include <GLogger.hpp>
 
 sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState() : m_state() {}
 sane_in_the_membrane::service::CChangeStateWatcher::CChannelState::CChannelState(grpc_connectivity_state state) : m_state(state) {}
@@ -63,7 +63,7 @@ void sane_in_the_membrane::service::CChangeStateWatcher::start_impl() {
         auto connection_failure_count_guard = m_connection_failure_count.access();
 
         if (state == grpc_connectivity_state::GRPC_CHANNEL_TRANSIENT_FAILURE && *connection_failure_count_guard < AUTO_CONNECT_MAX_TRIES) {
-            g_logger.log(DEBUG, "Trying server discovery");
+            log::debug("Trying server discovery");
             *connection_failure_count_guard += 1;
             sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
 
@@ -79,7 +79,7 @@ void sane_in_the_membrane::service::CChangeStateWatcher::start_impl() {
         if (state_guard->get() == grpc_connectivity_state::GRPC_CHANNEL_IDLE || state_guard->get() == grpc_connectivity_state::GRPC_CHANNEL_READY)
             *connection_failure_count_guard = 0;
 
-        g_logger.log(DEBUG, std::format("State changed: {}", state_guard->as_str()));
+        log::debug("State changed: {}", state_guard->as_str());
 
         emit sig_channel_state_changed(*state_guard);
     }

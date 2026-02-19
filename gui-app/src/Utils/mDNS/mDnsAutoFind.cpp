@@ -1,7 +1,7 @@
 #include "mDnsAutoFind.hpp"
-#include "../../GlobalLogger.cpp"
 #include "../Globals.hpp"
 #include <grpcpp/support/channel_arguments.h>
+#include <GLogger.hpp>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -45,17 +45,17 @@ CMDnsAutoFinder::CMDnsAutoFinder() :
 
             discover_inner();
         }
-        g_logger.log(DEBUG, "mDNS worker exiting");
+        log::debug("mDNS worker exiting");
     }) {
     QObject::connect(this, &CMDnsAutoFinder::sig_mdns_discovered, this, [this](const std::vector<SQueryResult>& discovered_connections) {
-        g_logger.log(INFO, "Trying to update mdns records");
+        log::info("Trying to update mdns records");
         if (!discovered_connections.empty()) {
             grpc::ChannelArguments args{};
             args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
 
             utils::Globals::get_instance().change_channel(discovered_connections.at(0).as_address_with_port(), grpc::InsecureChannelCredentials(), args);
         } else {
-            g_logger.log(INFO, "Mdns records empty");
+            log::info("Mdns records empty");
         }
     });
 };
@@ -83,13 +83,13 @@ void CMDnsAutoFinder::discover() {
 void CMDnsAutoFinder::discover_inner() {
     CMDns mdns{};
 
-    g_logger.log(INFO, "Discovering mdns records");
+    log::info("Discovering mdns records");
 
     emit sig_discovering();
 
     auto discover_result = mdns.discover_services();
     if (!discover_result.has_value()) {
-        g_logger.log(ERR, discover_result.error());
+        log::error(discover_result.error());
         emit sig_discover_failed(discover_result.error());
         return;
     }
@@ -98,7 +98,7 @@ void CMDnsAutoFinder::discover_inner() {
 
     auto query_result = mdns.query_services();
     if (!query_result.has_value()) {
-        g_logger.log(ERR, discover_result.error());
+        log::error(discover_result.error());
         emit sig_query_failed(discover_result.error());
         return;
     }
@@ -113,7 +113,7 @@ void CMDnsAutoFinder::interrupt() {}
 #else
 void CMDnsAutoFinder::interrupt() {
     std::lock_guard lock(m_mutex);
-    g_logger.log(DEBUG, "Received interrupt");
+    log::debug("Received interrupt");
     if (!m_worker.joinable())
         return;
 

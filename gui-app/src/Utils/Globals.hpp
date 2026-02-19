@@ -19,7 +19,7 @@
 #include "ServiceProxy/RefreshScannersServiceProxy.hpp"
 #include "ServiceProxy/ScanResponseReaderProxy.hpp"
 
-#include "../GlobalLogger.cpp"
+#include <GLogger.hpp>
 
 namespace sane_in_the_membrane::utils {
     class CGlobalsChangeReactor;
@@ -91,7 +91,7 @@ namespace sane_in_the_membrane::utils {
             if (!m_initialized)
                 SITM_ASSERT(0, "Use of globals before initialization");
 
-            g_logger.log(INFO, std::format("Changing address to: {}", connect_to));
+            log::info("Changing address to: {}", connect_to);
 
             m_services->m_state_change_watcher->stop();
             auto services = std::make_unique<CServices>(connect_to, creds, args);

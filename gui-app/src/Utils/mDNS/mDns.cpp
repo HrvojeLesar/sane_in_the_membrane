@@ -22,7 +22,7 @@
 #include <net/if.h>
 #include <sys/time.h>
 #endif
-#include "../../GlobalLogger.cpp"
+#include <GLogger.hpp>
 
 using namespace sane_in_the_membrane::utils::mdns;
 
@@ -88,16 +88,16 @@ std::expected<void, std::string> CMDns::discover_services(void) {
     int sockets[32];
     int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
     if (num_sockets <= 0) {
-        g_logger.log(ERR, "Failed to open any client sockets");
+        log::error("Failed to open any client sockets");
         return std::unexpected("Failed to open any client sockets");
     }
 
-    g_logger.log(DEBUG, std::format("Opened {} socket{} for DNS-SD", num_sockets, num_sockets > 1 ? "s" : ""));
+    log::debug("Opened {} socket{} for DNS-SD", num_sockets, num_sockets > 1 ? "s" : "");
 
-    g_logger.log(DEBUG, "Sending DNS-SD discovery");
+    log::debug("Sending DNS-SD discovery");
     for (int isock = 0; isock < num_sockets; ++isock) {
         if (mdns_discovery_send(sockets[isock]))
-            g_logger.log(ERR, std::format("Failed to send DNS-DS discovery: {}", strerror(errno)));
+            log::error("Failed to send DNS-DS discovery: {}", strerror(errno));
     }
 
     size_t capacity = 2048;
@@ -105,7 +105,7 @@ std::expected<void, std::string> CMDns::discover_services(void) {
     size_t records;
 
     int    res;
-    g_logger.log(DEBUG, "Reading DNS-SD replies");
+    log::debug("Reading DNS-SD replies");
     do {
         struct timeval timeout;
         timeout.tv_sec  = m_options.discover_timeout_sec;
@@ -138,7 +138,7 @@ std::expected<void, std::string> CMDns::discover_services(void) {
 
     for (int isock = 0; isock < num_sockets; ++isock)
         mdns_socket_close(sockets[isock]);
-    g_logger.log(INFO, std::format("Closed socket{}", num_sockets > 1 ? "s" : ""));
+    log::info("Closed socket{}", num_sockets > 1 ? "s" : "");
 
     return {};
 }
@@ -188,7 +188,7 @@ int CMDns::open_client_sockets(int* sockets, int max_sockets, int port) {
 
     if (!adapter_address || (ret != NO_ERROR)) {
         free(adapter_address);
-        g_logger.log(ERR, "Failed to get network adapter addresses");
+        log::error("Failed to get network adapter addresses");
         return num_sockets;
     }
 
@@ -251,7 +251,7 @@ int CMDns::open_client_sockets(int* sockets, int max_sockets, int port) {
     struct ifaddrs* ifa    = 0;
 
     if (getifaddrs(&ifaddr) < 0)
-        g_logger.log(ERR, "Unable to get interface addresses");
+        log::error("Unable to get interface addresses");
 
     int first_ipv4 = 1;
     int first_ipv6 = 1;
@@ -361,10 +361,10 @@ std::expected<void, std::string> CMDns::send_mdns_query(mdns_query_t* query, siz
     int query_id[32];
     int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
     if (num_sockets <= 0) {
-        g_logger.log(ERR, "Failed to open any client sockets");
+        log::error("Failed to open any client sockets");
         return std::unexpected("Failed to open any client sockets");
     }
-    g_logger.log(DEBUG, std::format("Opened {} socket{} for mDNS query", num_sockets, num_sockets > 1 ? "s" : ""));
+    log::debug("Opened {} socket{} for mDNS query", num_sockets, num_sockets > 1 ? "s" : "");
 
     size_t capacity = 2048;
     void*  buffer   = malloc(capacity);
@@ -379,17 +379,17 @@ std::expected<void, std::string> CMDns::send_mdns_query(mdns_query_t* query, siz
             record_name = "AAAA";
         else
             query[iq].type = MDNS_RECORDTYPE_PTR;
-        g_logger.log(DEBUG, std::format("Sending mDNS query: {} {}", query[iq].name, record_name));
+        log::debug("Sending mDNS query: {} {}", query[iq].name, record_name);
     }
 
     for (int isock = 0; isock < num_sockets; ++isock) {
         query_id[isock] = mdns_multiquery_send(sockets[isock], query, count, buffer, capacity, 0);
         if (query_id[isock] < 0)
-            g_logger.log(ERR, std::format("Failed to send mDNS query: {}", strerror(errno)));
+            log::error("Failed to send mDNS query: {}", strerror(errno));
     }
 
     int res;
-    g_logger.log(ERR, "Reading mDNS query replies");
+    log::error("Reading mDNS query replies");
     int records = 0;
     do {
         struct timeval timeout;

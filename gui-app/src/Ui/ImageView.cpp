@@ -22,6 +22,7 @@
 #include <QObject>
 #include <utility>
 #include <vector>
+#include <GLogger.hpp>
 
 using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::utils::pdf;
@@ -108,7 +109,7 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
     connect(m_save, &QPushButton::clicked, this, [this]() {
         auto filename = QFileDialog::getSaveFileName(this, "Save pdf");
         if (filename.isEmpty()) {
-            g_logger.log(DEBUG, "Empty, exiting");
+            log::debug("Empty, exiting");
             return;
         }
 
@@ -195,7 +196,7 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     }
 
     if (static_cast<size_t>(params->pixels_per_line * params->lines) > file->size()) {
-        g_logger.log(INFO, "File size does not correspond to params");
+        log::info("File size does not correspond to params");
         return;
     }
 

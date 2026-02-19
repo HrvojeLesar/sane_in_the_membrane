@@ -1,5 +1,5 @@
 #include "ScanResponseReactor.hpp"
-#include "../GlobalLogger.cpp"
+#include <GLogger.hpp>
 
 using namespace sane_in_the_membrane::reactor;
 
@@ -8,7 +8,7 @@ CScanResponseReactor::CScanResponseReactor(std::shared_ptr<sane::CSaneDevice> m_
         m_byte_data.reserve(10240);
         start_scan();
     } else {
-        g_logger.log(DEBUG, "Device not found");
+        log::debug("Device not found");
         Finish(grpc::Status(grpc::StatusCode::ABORTED, "Device not found"));
     }
 }
@@ -22,14 +22,14 @@ void CScanResponseReactor::OnDone() {
 }
 
 void CScanResponseReactor::OnCancel() {
-    g_logger.log(DEBUG, "Cancelled");
+    log::debug("Cancelled");
     m_device->cancel();
 }
 
 void CScanResponseReactor::OnWriteDone(bool ok) {
-    g_logger.log(DEBUG, "Write ok");
+    log::debug("Write ok");
     if (!ok) {
-        g_logger.log(WARN, "Write failed");
+        log::warn("Write failed");
         Finish(grpc::Status(grpc::StatusCode::UNKNOWN, "Write failed"));
     } else {
         next_packet();
@@ -45,7 +45,7 @@ void CScanResponseReactor::write_response() {
 }
 
 void CScanResponseReactor::next_packet() {
-    g_logger.log(DEBUG, "Next packet");
+    log::debug("Next packet");
     reset_response();
 
     while (true) {
@@ -86,13 +86,13 @@ void CScanResponseReactor::write_sane_parameters(const SANE_Parameters& paramete
 }
 
 void CScanResponseReactor::reset_response() {
-    g_logger.log(TRACE, "Resetting response");
+    log::trace("Resetting response");
     m_response.Clear();
     m_byte_data.clear();
     m_data             = new ScanResponseData();
     m_byte_data_string = new std::string();
     m_response.set_scanner_name(m_device->get_name());
-    g_logger.log(TRACE, "Reset response");
+    log::trace("Reset response");
 }
 
 void CScanResponseReactor::start_scan() {
@@ -108,7 +108,7 @@ void CScanResponseReactor::start_scan() {
 
     status = m_device->refresh_parameters();
     if (!status.is_ok()) {
-        g_logger.log(DEBUG, std::format("Failed to refresh parameters: {}", status.str_status()));
+        log::debug("Failed to refresh parameters: {}", status.str_status());
         return Finish(grpc::Status(grpc::StatusCode::CANCELLED, std::format("Failed to start device: {}", status.str_status())));
     }
 
