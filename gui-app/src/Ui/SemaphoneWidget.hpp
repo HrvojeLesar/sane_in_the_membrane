@@ -1,7 +1,9 @@
 #ifndef UI_SEMAPHONE_WIDGET
 #define UI_SEMAPHONE_WIDGET
 
+#include <qboxlayout.h>
 #include <qevent.h>
+#include <qlabel.h>
 #include <qobject.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
@@ -15,17 +17,26 @@ namespace sane_in_the_membrane::ui {
         Red,
     };
 
-    class CSemaphoneWidget : public QWidget {
+    class CSemaphoreLight : public QWidget {
         Q_OBJECT
 
       public:
-        CSemaphoneWidget(QWidget* parent = nullptr);
+        CSemaphoreLight(QWidget* parent = nullptr);
 
         void set_status(ESemaphoneStatus status);
 
       protected:
         void paintEvent(QPaintEvent* event) override;
         void mouseReleaseEvent(QMouseEvent* event) override;
+
+      private:
+        ESemaphoneStatus m_status;
+    };
+
+    class CSemaphoreWidget : public QWidget {
+        Q_OBJECT
+      public:
+        CSemaphoreWidget(QWidget* parent = nullptr);
 
       private slots:
         void sl_channel_state_changed(sane_in_the_membrane::service::CChangeStateWatcher::CChannelState state);
@@ -36,7 +47,9 @@ namespace sane_in_the_membrane::ui {
         void sl_stopping_auto_discovery();
 
       private:
-        ESemaphoneStatus m_status;
+        CSemaphoreLight* const m_semaphore_light;
+        QHBoxLayout* const     m_horizontal_layout;
+        QLabel* const          m_text;
     };
 }
 

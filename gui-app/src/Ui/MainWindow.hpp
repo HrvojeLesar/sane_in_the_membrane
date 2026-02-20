@@ -18,6 +18,7 @@
 #include "RefreshScanners.hpp"
 #include "ScanButton.hpp"
 #include "ImageView.hpp"
+#include "SemaphoneWidget.hpp"
 #include <QMessageBox>
 #include <QProgressBar>
 
@@ -30,20 +31,21 @@ namespace sane_in_the_membrane::ui {
         CMainWindow();
         ~CMainWindow();
 
-        void closeEvent(QCloseEvent* event) override; 
+        void closeEvent(QCloseEvent* event) override;
 
       private:
-        QWidget*                                  m_central_widget{};
-        QVBoxLayout*                              m_main_layout{};
-        QGroupBox*                                m_group_box{};
-        QFormLayout*                              m_form_layout{};
+        QWidget* const                                  m_central_widget{};
+        QVBoxLayout* const                              m_main_layout{};
+        QGroupBox* const                                m_group_box{};
+        QFormLayout* const                              m_form_layout{};
 
-        ui::CScannerSelect*                       m_scanner_select{};
-        QHBoxLayout*                              m_scanner_hbox{};
-        sane_in_the_membrane::ui::CRefreshButton* m_refresh_button{};
-        sane_in_the_membrane::ui::CScanButton*    m_scan_button{};
-        sane_in_the_membrane::ui::CImageView*     m_image_view{};
-        QProgressBar*                             m_progress_bar{};
+        ui::CScannerSelect* const                       m_scanner_select{};
+        QHBoxLayout* const                              m_scanner_hbox{};
+        sane_in_the_membrane::ui::CRefreshButton* const m_refresh_button{};
+        sane_in_the_membrane::ui::CScanButton* const    m_scan_button{};
+        sane_in_the_membrane::ui::CImageView* const     m_image_view{};
+        QProgressBar* const                             m_progress_bar{};
+        CSemaphoreWidget* const                         m_server_status{};
     };
 }
 

@@ -2,22 +2,18 @@
 #include "../Utils/Globals.hpp"
 #include "ImageView.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
+#include "SemaphoneWidget.hpp"
 
 using namespace sane_in_the_membrane::ui;
 
-CMainWindow::CMainWindow() {
-    m_central_widget = new QWidget(this);
-    m_main_layout    = new QVBoxLayout();
-    m_group_box      = new QGroupBox();
-    m_form_layout    = new QFormLayout();
-    m_refresh_button = new sane_in_the_membrane::ui::CRefreshButton(nullptr);
-    m_scanner_select = new ui::CScannerSelect();
-    m_image_view     = new sane_in_the_membrane::ui::CImageView();
-    m_progress_bar   = new QProgressBar();
+CMainWindow::CMainWindow() :
+    m_central_widget(new QWidget(this)), m_main_layout(new QVBoxLayout()), m_group_box(new QGroupBox()), m_form_layout(new QFormLayout()),
 
-    m_scanner_hbox = new QHBoxLayout();
+    m_scanner_select(new ui::CScannerSelect()), m_scanner_hbox(new QHBoxLayout()), m_refresh_button(new sane_in_the_membrane::ui::CRefreshButton()),
+    m_scan_button(new sane_in_the_membrane::ui::CScanButton(m_scanner_select)), m_image_view(new sane_in_the_membrane::ui::CImageView()), m_progress_bar(new QProgressBar()),
+    m_server_status(new CSemaphoreWidget())
 
-    m_scan_button = new sane_in_the_membrane::ui::CScanButton(m_scanner_select);
+{
     QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_progress, m_progress_bar,
                      [this](double progress) { this->m_progress_bar->setValue(progress); });
 
@@ -31,6 +27,7 @@ CMainWindow::CMainWindow() {
     m_form_layout->addRow(new QLabel("Scan:"), m_scan_button);
     m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
     m_form_layout->addRow(new QLabel("Pages:"), m_image_view);
+    m_form_layout->addRow(new QLabel(), m_server_status);
     m_group_box->setLayout(m_form_layout);
 
     m_main_layout->addWidget(m_group_box);
@@ -49,13 +46,14 @@ void CMainWindow::closeEvent(QCloseEvent* event) {
     confirm_box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     confirm_box.setDefaultButton(QMessageBox::Ok);
 
-    auto  exec_status = confirm_box.exec();
+    auto exec_status = confirm_box.exec();
 
     switch (exec_status) {
         case QMessageBox::Ok:
-        case QMessageBox::Close: 
+        case QMessageBox::Close:
             sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().interrupt();
-            event->accept(); break;
+            event->accept();
+            break;
 
         case QMessageBox::Cancel:
         default: event->ignore(); break;

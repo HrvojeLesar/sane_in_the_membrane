@@ -2,67 +2,24 @@
 #include "../Utils/Globals.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
 #include <QPainter>
-#include <iostream>
 #include <qcolor.h>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <QMouseEvent>
+#include <GLogger.hpp>
 
 using namespace sane_in_the_membrane::ui;
 
-CSemaphoneWidget::CSemaphoneWidget(QWidget* parent) : QWidget(parent), m_status(ESemaphoneStatus::Red) {
-    QObject::connect(&utils::Globals::get_instance().proxies()->m_change_state_watcher_proxy, &utils::proxy::CChangeStateWatcher::sig_channel_state_changed, this,
-                     &CSemaphoneWidget::sl_channel_state_changed);
-    QObject::connect(&utils::Globals::get_instance().proxies()->m_change_state_watcher_proxy, &utils::proxy::CChangeStateWatcher::sig_stopping_auto_discovery, this,
-                     &CSemaphoneWidget::sl_stopping_auto_discovery);
-
-    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_discovering, this,
-                     &CSemaphoneWidget::sl_discovering);
-    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_mdns_discovered, this,
-                     &CSemaphoneWidget::sl_mdns_discovered);
-    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_discover_failed, this,
-                     &CSemaphoneWidget::sl_discover_failed);
-    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_query_failed, this,
-                     &CSemaphoneWidget::sl_query_failed);
-
+CSemaphoreLight::CSemaphoreLight(QWidget* parent) : QWidget(parent), m_status(ESemaphoneStatus::Red) {
     setMinimumSize({30, 30});
 }
 
-void CSemaphoneWidget::sl_channel_state_changed(sane_in_the_membrane::service::CChangeStateWatcher::CChannelState state) {
-    switch (state.get()) {
-        case GRPC_CHANNEL_IDLE:
-        case GRPC_CHANNEL_READY: set_status(ESemaphoneStatus::Green); break;
-        case GRPC_CHANNEL_CONNECTING: set_status(ESemaphoneStatus::Yellow); break;
-        case GRPC_CHANNEL_TRANSIENT_FAILURE:
-        case GRPC_CHANNEL_SHUTDOWN: set_status(ESemaphoneStatus::Red); break;
-    }
-}
-void CSemaphoneWidget::sl_discovering() {
-    set_status(ESemaphoneStatus::Yellow);
-}
-
-void CSemaphoneWidget::sl_mdns_discovered(const std::vector<sane_in_the_membrane::utils::mdns::SQueryResult>& discovered_connections) {
-    // Write some message
-    if (discovered_connections.empty())
-        set_status(ESemaphoneStatus::Red);
-}
-
-void CSemaphoneWidget::sl_discover_failed(const std::string& error) {
-    // Write some message
-    set_status(ESemaphoneStatus::Red);
-}
-
-void CSemaphoneWidget::sl_query_failed(const std::string& error) {
-    // Write some message
-    set_status(ESemaphoneStatus::Red);
-}
-
-void CSemaphoneWidget::set_status(ESemaphoneStatus status) {
+void CSemaphoreLight::set_status(ESemaphoneStatus status) {
     m_status = status;
     update();
 }
 
-void CSemaphoneWidget::paintEvent(QPaintEvent* event) {
+void CSemaphoreLight::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
 
     painter.setRenderHint(QPainter::Antialiasing);
@@ -74,18 +31,75 @@ void CSemaphoneWidget::paintEvent(QPaintEvent* event) {
         case Red: color = Qt::GlobalColor::red; break;
     }
 
-    QRect circle{0, (height() - size().width()) / 2, size().width(), size().height()};
+    QRectF circle{size().width() / 4.0, size().height() / 4.0, size().width() / 2.5, size().height() / 2.5};
 
     painter.setBrush(color);
     painter.setPen(Qt::GlobalColor::black);
     painter.drawEllipse(circle);
 }
 
-void CSemaphoneWidget::mouseReleaseEvent(QMouseEvent* event) {
+void CSemaphoreLight::mouseReleaseEvent(QMouseEvent* event) {
     sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
 }
 
-void CSemaphoneWidget::sl_stopping_auto_discovery() {
-    std::cout << "Stopping auto discovery\n";
-    // Write some message
+CSemaphoreWidget::CSemaphoreWidget(QWidget* parent) : QWidget(parent), m_semaphore_light(new CSemaphoreLight()), m_horizontal_layout(new QHBoxLayout(this)), m_text(new QLabel()) {
+    m_horizontal_layout->addWidget(m_semaphore_light);
+    m_horizontal_layout->addWidget(m_text);
+
+    QObject::connect(&utils::Globals::get_instance().proxies()->m_change_state_watcher_proxy, &utils::proxy::CChangeStateWatcher::sig_channel_state_changed, this,
+                     &CSemaphoreWidget::sl_channel_state_changed);
+    QObject::connect(&utils::Globals::get_instance().proxies()->m_change_state_watcher_proxy, &utils::proxy::CChangeStateWatcher::sig_stopping_auto_discovery, this,
+                     &CSemaphoreWidget::sl_stopping_auto_discovery);
+
+    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_discovering, this,
+                     &CSemaphoreWidget::sl_discovering);
+    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_mdns_discovered, this,
+                     &CSemaphoreWidget::sl_mdns_discovered);
+    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_discover_failed, this,
+                     &CSemaphoreWidget::sl_discover_failed);
+    QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_query_failed, this,
+                     &CSemaphoreWidget::sl_query_failed);
+}
+
+void CSemaphoreWidget::sl_channel_state_changed(sane_in_the_membrane::service::CChangeStateWatcher::CChannelState state) {
+    switch (state.get()) {
+        case GRPC_CHANNEL_IDLE:
+        case GRPC_CHANNEL_READY: m_semaphore_light->set_status(ESemaphoneStatus::Green); break;
+        case GRPC_CHANNEL_CONNECTING: m_semaphore_light->set_status(ESemaphoneStatus::Yellow); break;
+        case GRPC_CHANNEL_TRANSIENT_FAILURE:
+        case GRPC_CHANNEL_SHUTDOWN: m_semaphore_light->set_status(ESemaphoneStatus::Red); break;
+    }
+}
+void CSemaphoreWidget::sl_discovering() {
+    m_semaphore_light->set_status(ESemaphoneStatus::Yellow);
+    m_text->setText("Connecting...");
+}
+
+void CSemaphoreWidget::sl_mdns_discovered(const std::vector<sane_in_the_membrane::utils::mdns::SQueryResult>& discovered_connections) {
+    if (discovered_connections.empty()) {
+        m_semaphore_light->set_status(ESemaphoneStatus::Red);
+        m_text->setText("Unable to find scanner server");
+        log::debug("Unable to find scanner server");
+    } else {
+        m_semaphore_light->set_status(ESemaphoneStatus::Green);
+        m_text->setText("Connected");
+        log::debug("Connected");
+    }
+}
+
+void CSemaphoreWidget::sl_discover_failed(const std::string& error) {
+    m_semaphore_light->set_status(ESemaphoneStatus::Red);
+    m_text->setText("Failed to discover scanner server");
+    log::warn("Failed to discover scanner server");
+}
+
+void CSemaphoreWidget::sl_query_failed(const std::string& error) {
+    m_semaphore_light->set_status(ESemaphoneStatus::Red);
+    m_text->setText("Failed to query scanner server");
+    log::warn("Failed to query scanner server");
+}
+
+void CSemaphoreWidget::sl_stopping_auto_discovery() {
+    m_semaphore_light->set_status(ESemaphoneStatus::Red);
+    m_text->setText("Server auto discovery stopped, click the red icon to try discovering scanner server");
 }
