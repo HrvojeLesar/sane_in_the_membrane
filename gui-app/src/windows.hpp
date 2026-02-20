@@ -1,4 +1,4 @@
-#ifndef WINDOWS_QT_PLUGINS
+#ifdef WINDOWS_QT_PLUGINS // Should be set only when statically linking on windows
 
 #ifdef _WIN32
 #include <QtPlugin>
