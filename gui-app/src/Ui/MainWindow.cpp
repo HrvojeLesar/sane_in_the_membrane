@@ -2,6 +2,7 @@
 #include "../Utils/Globals.hpp"
 #include "ImageView.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
+#include "Scan/ProgressBar.hpp"
 #include "SemaphoneWidget.hpp"
 
 using namespace sane_in_the_membrane::ui;
@@ -9,22 +10,12 @@ using namespace sane_in_the_membrane::ui;
 CMainWindow::CMainWindow() :
     m_central_widget(new QWidget(this)), m_main_layout(new QVBoxLayout()), m_group_box(new QGroupBox()), m_form_layout(new QFormLayout()),
 
-    m_scanner_select(new ui::CScannerSelect()), m_scanner_hbox(new QHBoxLayout()), m_refresh_button(new sane_in_the_membrane::ui::CRefreshButton()),
-    m_scan_button(new sane_in_the_membrane::ui::CScanButton(m_scanner_select)), m_image_view(new sane_in_the_membrane::ui::CImageView()), m_progress_bar(new QProgressBar()),
-    m_server_status(new CSemaphoreWidget())
-
-{
-    QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_progress, m_progress_bar,
-                     [this](double progress) { this->m_progress_bar->setValue(progress); });
-
+    m_scanner_select(new CScannerSelect()), m_scanner_hbox(new QHBoxLayout()), m_refresh_button(new CRefreshButton()), m_image_view(new CImageView()),
+    m_server_status(new CSemaphoreWidget()), m_scan_widget(new scan::CScanWidget(m_scanner_select, this)) {
     m_scanner_hbox->addWidget(m_scanner_select);
     m_scanner_hbox->addWidget(m_refresh_button);
-    m_scanner_hbox->addWidget(m_progress_bar);
 
-    m_progress_bar->setMinimum(0);
-    m_progress_bar->setMaximum(100);
-
-    m_form_layout->addRow(new QLabel("Scan:"), m_scan_button);
+    m_form_layout->addRow(new QLabel("Scan:"), m_scan_widget);
     m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
     m_form_layout->addRow(new QLabel("Pages:"), m_image_view);
     m_form_layout->addRow(new QLabel(), m_server_status);

@@ -1,13 +1,12 @@
 #include "ScanButton.hpp"
-#include "ScannerSelect.hpp"
 #include <format>
 #include <qobject.h>
-#include "../Service/DeviceList.hpp"
-#include "../Utils/Globals.hpp"
+#include "../../Service/DeviceList.hpp"
+#include "../../Utils/Globals.hpp"
 #include <GLogger.hpp>
 
-using namespace sane_in_the_membrane;
 using namespace sane_in_the_membrane::ui;
+using namespace sane_in_the_membrane::ui::scan;
 
 CScanButton::CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
     QObject::connect(this, &CScanButton::clicked, this, &CScanButton::sl_clicked);

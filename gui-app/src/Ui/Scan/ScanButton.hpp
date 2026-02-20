@@ -1,16 +1,16 @@
 #ifndef UI_SCAN_BUTTON
 #define UI_SCAN_BUTTON
 
-#include "ScannerSelect.hpp"
+#include "../ScannerSelect.hpp"
 #include "scanner/v1/scanner.pb.h"
 #include <grpcpp/support/status.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qwidget.h>
-#include "../Utils/File.hpp"
-#include "../Utils/ScannerUtils.hpp"
+#include "../../Utils/File.hpp"
+#include "../../Utils/ScannerUtils.hpp"
 
-namespace sane_in_the_membrane::ui {
+namespace sane_in_the_membrane::ui::scan {
     class CScanButton : public QPushButton {
         Q_OBJECT
       public:
