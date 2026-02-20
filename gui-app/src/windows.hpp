@@ -1,5 +1,4 @@
 #ifndef WINDOWS_QT_PLUGINS
-#define WINDOWS_QT_PLUGINS
 
 #ifdef _WIN32
 #include <QtPlugin>

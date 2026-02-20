@@ -25,7 +25,8 @@ jobs:
       - name: Cache CMake build
         uses: actions/cache@v5
         with:
-          path: build
+          path: |
+            build/_deps
           key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-cmake-build-

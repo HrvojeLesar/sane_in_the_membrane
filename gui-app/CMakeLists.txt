@@ -59,4 +59,5 @@ target_link_libraries(Gui PRIVATE gui_lib)
 
 if (STATIC_WINDOWS_BUILD)
     target_link_libraries(Gui PRIVATE Qt6::QWindowsIntegrationPlugin)
+    target_compile_definitions(Gui PRIVATE WINDOWS_QT_PLUGINS)
 endif()
