@@ -1,12 +1,12 @@
-#ifndef UI_REFRESH_SCANNERS
-#define UI_REFRESH_SCANNERS
+#ifndef UI_SELECT_REFRESH_SCANNERS
+#define UI_SELECT_REFRESH_SCANNERS
 
 #include "scanner/v1/scanner.pb.h"
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qwidget.h>
 
-namespace sane_in_the_membrane::ui {
+namespace sane_in_the_membrane::ui::select {
     class CRefreshButton : public QPushButton {
       public:
         CRefreshButton(QWidget* parent = nullptr);
@@ -26,4 +26,4 @@ namespace sane_in_the_membrane::ui {
     };
 }
 
-#endif // !UI_REFRESH_SCANNERS
+#endif // !UI_SELECT_REFRESH_SCANNERS

@@ -3,7 +3,9 @@
 
 using namespace sane_in_the_membrane::ui::image;
 
-CImageHorizontalScroll::CImageHorizontalScroll(QWidget* parent) : QScrollArea(parent) {}
+CImageHorizontalScroll::CImageHorizontalScroll(QWidget* parent) : QScrollArea(parent) {
+    setWidgetResizable(true);
+}
 
 void CImageHorizontalScroll::wheelEvent(QWheelEvent* event) {
     if (!verticalScrollBar()->isVisible()) {

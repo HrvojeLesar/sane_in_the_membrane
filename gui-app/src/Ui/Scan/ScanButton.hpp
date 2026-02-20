@@ -1,7 +1,7 @@
 #ifndef UI_SCAN_BUTTON
 #define UI_SCAN_BUTTON
 
-#include "../ScannerSelect.hpp"
+#include "../Select/ScannerSelect.hpp"
 #include "scanner/v1/scanner.pb.h"
 #include <grpcpp/support/status.h>
 #include <qobject.h>
@@ -14,7 +14,7 @@ namespace sane_in_the_membrane::ui::scan {
     class CScanButton : public QPushButton {
         Q_OBJECT
       public:
-        CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent = nullptr);
+        CScanButton(select::CScannerSelect* scanner_select, QWidget* parent = nullptr);
 
       private slots:
         void sl_clicked();
@@ -22,7 +22,7 @@ namespace sane_in_the_membrane::ui::scan {
         void sl_scanners_changed(const sane_in_the_membrane::utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items);
 
       private:
-        ui::CScannerSelect*      m_scanner_select;
+        select::CScannerSelect*  m_scanner_select;
         scanner::v1::ScanRequest m_request;
     };
 }

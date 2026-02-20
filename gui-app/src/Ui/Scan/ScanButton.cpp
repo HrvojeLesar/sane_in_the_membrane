@@ -5,10 +5,9 @@
 #include "../../Utils/Globals.hpp"
 #include <GLogger.hpp>
 
-using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::ui::scan;
 
-CScanButton::CScanButton(ui::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
+CScanButton::CScanButton(select::CScannerSelect* scanner_select, QWidget* parent) : QPushButton("Scan", parent), m_scanner_select(scanner_select) {
     QObject::connect(this, &CScanButton::clicked, this, &CScanButton::sl_clicked);
     QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_done, this, &CScanButton::sl_sig_done);
     QObject::connect(&utils::Globals::get_instance().proxies()->m_device_list_proxy, &utils::proxy::CDeviceListProxy::sig_scanners_changed, this,

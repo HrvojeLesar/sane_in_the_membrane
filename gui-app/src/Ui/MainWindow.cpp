@@ -1,33 +1,39 @@
 #include "MainWindow.hpp"
-#include "../Utils/Globals.hpp"
 #include "ImageView.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
-#include "Scan/ProgressBar.hpp"
+#include "Select/ScannerSelectWidget.hpp"
 #include "SemaphoneWidget.hpp"
+#include <qformlayout.h>
 
 using namespace sane_in_the_membrane::ui;
 
 CMainWindow::CMainWindow() :
-    m_central_widget(new QWidget(this)), m_main_layout(new QVBoxLayout()), m_group_box(new QGroupBox()), m_form_layout(new QFormLayout()),
+    m_central_widget(new QWidget(this)), m_main_layout(new QVBoxLayout()), m_group_box(new QGroupBox()), m_image_view(new CImageView()),
+    m_scanner_select_widget(new select::CScannerSelectWidget()), m_server_status(new CSemaphoreWidget()),
+    m_scan_widget(new scan::CScanWidget(m_scanner_select_widget->get_scanner_select(), this)), m_scanner_form_layout(new QFormLayout(this)),
+    m_scanner_section_group(new QGroupBox("Scanners")), m_images_form_layout(new QFormLayout(this)), m_images_section_group(new QGroupBox("Scanned pages")),
+    m_other_form_layout(new QFormLayout(this))
 
-    m_scanner_select(new CScannerSelect()), m_scanner_hbox(new QHBoxLayout()), m_refresh_button(new CRefreshButton()), m_image_view(new CImageView()),
-    m_server_status(new CSemaphoreWidget()), m_scan_widget(new scan::CScanWidget(m_scanner_select, this)) {
-    m_scanner_hbox->addWidget(m_scanner_select);
-    m_scanner_hbox->addWidget(m_refresh_button);
+{
+    m_scanner_form_layout->addRow(nullptr, m_scan_widget);
+    m_scanner_form_layout->addRow(nullptr, m_scanner_select_widget);
+    m_scanner_section_group->setLayout(m_scanner_form_layout);
 
-    m_form_layout->addRow(new QLabel("Scan:"), m_scan_widget);
-    m_form_layout->addRow(new QLabel("Select:"), m_scanner_hbox);
-    m_form_layout->addRow(new QLabel("Pages:"), m_image_view);
-    m_form_layout->addRow(new QLabel(), m_server_status);
-    m_group_box->setLayout(m_form_layout);
+    m_images_form_layout->addRow(nullptr, m_image_view);
+    m_images_section_group->setLayout(m_images_form_layout);
 
-    m_main_layout->addWidget(m_group_box);
+    m_other_form_layout->addRow(nullptr, m_server_status);
+
+    m_main_layout->addWidget(m_scanner_section_group);
+    m_main_layout->addWidget(m_images_section_group);
+    m_main_layout->addLayout(m_other_form_layout);
 
     m_central_widget->setLayout(m_main_layout);
     setCentralWidget(m_central_widget);
 
     show();
 }
+
 CMainWindow::~CMainWindow() {}
 
 void CMainWindow::closeEvent(QCloseEvent* event) {

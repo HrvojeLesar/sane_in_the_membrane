@@ -1,14 +1,14 @@
-#ifndef UI_SCANNER_SELECT
-#define UI_SCANNER_SELECT
+#ifndef UI_SELECT_SCANNER_SELECT
+#define UI_SELECT_SCANNER_SELECT
 
 #include <QComboBox>
 #include <QVariant>
 #include <memory>
 #include <qcombobox.h>
 #include <qvariant.h>
-#include "../Service/DeviceList.hpp"
+#include "../../Service/DeviceList.hpp"
 
-namespace sane_in_the_membrane::ui {
+namespace sane_in_the_membrane::ui::select {
     class CScannerSelect : public QComboBox {
         Q_OBJECT
       public:
@@ -25,4 +25,4 @@ namespace sane_in_the_membrane::ui {
     };
 }
 
-#endif // !UI_SCANNER_SELECT
+#endif // !UI_SELECT_SCANNER_SELECT

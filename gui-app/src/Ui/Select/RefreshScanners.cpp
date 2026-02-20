@@ -1,8 +1,8 @@
 #include "RefreshScanners.hpp"
-#include "../Utils/Globals.hpp"
+#include "../../Utils/Globals.hpp"
 #include <GLogger.hpp>
 
-using namespace sane_in_the_membrane::ui;
+using namespace sane_in_the_membrane::ui::select;
 
 CRefreshButton::CRefreshButton(QWidget* parent) : QPushButton("Refresh", parent) {
     QObject::connect(this, &CRefreshButton::clicked, this, &CRefreshButton::on_clicked_get_scanners);

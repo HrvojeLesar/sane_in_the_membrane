@@ -100,7 +100,6 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
     m_scroll(new image::CImageHorizontalScroll(this)), m_save(new QPushButton("Save", this)) {
     QObject::connect(&utils::Globals::get_instance().proxies()->m_scan_response_reader_proxy, &utils::proxy::CScanResponseReaderProxy::sig_done, this, &CImageView::sl_sig_done);
 
-    m_scroll->setWidgetResizable(true);
     m_scroll->setWidget(m_image_container);
 
     m_main_layout->addWidget(m_save);
