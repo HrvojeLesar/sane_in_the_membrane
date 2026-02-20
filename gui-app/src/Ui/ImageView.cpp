@@ -10,6 +10,7 @@
 #include <qobject.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
+#include <qsizepolicy.h>
 #include <qwidget.h>
 #include "../Utils/Globals.hpp"
 #include <QFileDialog>
@@ -53,12 +54,12 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, uint32_t page_number,
     m_layout->setContentsMargins(8, 8, 8, 8);
     m_layout->setSpacing(4);
 
-    m_image_label->setAlignment(Qt::AlignCenter);
-
     set_pixmap();
 
-    m_layout->addWidget(m_image_label);
-    m_layout->addWidget(m_toolbar);
+    m_toolbar->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+    m_layout->addWidget(m_image_label, 0, Qt::AlignHCenter);
+    m_layout->addWidget(m_toolbar, 0, Qt::AlignHCenter);
 }
 std::shared_ptr<sane_in_the_membrane::utils::CFile> CImageItem::file() {
     return m_file;
