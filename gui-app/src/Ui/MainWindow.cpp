@@ -2,7 +2,7 @@
 #include "ImageView.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
 #include "Select/ScannerSelectWidget.hpp"
-#include "SemaphoneWidget.hpp"
+#include "SemaphoreWidget.hpp"
 #include <qformlayout.h>
 
 using namespace sane_in_the_membrane::ui;

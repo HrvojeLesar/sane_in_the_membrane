@@ -21,11 +21,11 @@ Client supports previewing scans and exporting scanned pages into a pdf document
 
 Features, tasks and ideas to do in no particular order:
 
-- [ ] Make UI nicer
+- [x] Make UI nicer
 - [x] Reorder displayed pages
 - [x] Rotate pages
 - [ ] Export in different formats (e.g. export only images)
 - [ ] Compress packets
 - [x] Automatic server discovery
-- [ ] Test windows build
+- [x] Test windows build
 - [ ] Add OCR support (probably embed or require external installation of [OCRMyPdf](https://github.com/ocrmypdf/OCRmyPDF))

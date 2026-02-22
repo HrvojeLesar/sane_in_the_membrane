@@ -1,9 +1,10 @@
-#include "SemaphoneWidget.hpp"
+#include "SemaphoreWidget.hpp"
 #include "../Utils/Globals.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
 #include <QPainter>
 #include <qcolor.h>
 #include <qnamespace.h>
+#include <qobject.h>
 #include <qpoint.h>
 #include <QMouseEvent>
 #include <GLogger.hpp>
@@ -31,7 +32,7 @@ void CSemaphoreLight::paintEvent(QPaintEvent* event) {
         case Red: color = Qt::GlobalColor::red; break;
     }
 
-    QRectF circle{size().width() / 4.0, size().height() / 4.0, size().width() / 2.5, size().height() / 2.5};
+    QRectF circle{30.0 / 4.0, 30.0 / 4.0, 30.0 / 2.5, 30.0 / 2.5};
 
     painter.setBrush(color);
     painter.setPen(Qt::GlobalColor::black);
@@ -39,7 +40,7 @@ void CSemaphoreLight::paintEvent(QPaintEvent* event) {
 }
 
 void CSemaphoreLight::mouseReleaseEvent(QMouseEvent* event) {
-    sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
+    emit click();
 }
 
 CSemaphoreWidget::CSemaphoreWidget(QWidget* parent) : QWidget(parent), m_semaphore_light(new CSemaphoreLight()), m_horizontal_layout(new QHBoxLayout(this)), m_text(new QLabel()) {
@@ -59,6 +60,8 @@ CSemaphoreWidget::CSemaphoreWidget(QWidget* parent) : QWidget(parent), m_semapho
                      &CSemaphoreWidget::sl_discover_failed);
     QObject::connect(&sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance(), &sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::sig_query_failed, this,
                      &CSemaphoreWidget::sl_query_failed);
+
+    QObject::connect(m_semaphore_light, &CSemaphoreLight::click, this, &CSemaphoreWidget::sl_rediscover);
 }
 
 void CSemaphoreWidget::sl_channel_state_changed(sane_in_the_membrane::service::CChangeStateWatcher::CChannelState state) {
@@ -70,36 +73,46 @@ void CSemaphoreWidget::sl_channel_state_changed(sane_in_the_membrane::service::C
         case GRPC_CHANNEL_SHUTDOWN: m_semaphore_light->set_status(ESemaphoneStatus::Red); break;
     }
 }
+
 void CSemaphoreWidget::sl_discovering() {
     m_semaphore_light->set_status(ESemaphoneStatus::Yellow);
-    m_text->setText("Connecting...");
+    m_text->setText(CONNECTING_MESSAGE);
+    log::debug(CONNECTED_MESSAGE);
 }
 
 void CSemaphoreWidget::sl_mdns_discovered(const std::vector<sane_in_the_membrane::utils::mdns::SQueryResult>& discovered_connections) {
     if (discovered_connections.empty()) {
         m_semaphore_light->set_status(ESemaphoneStatus::Red);
-        m_text->setText("Unable to find scanner server");
-        log::debug("Unable to find scanner server");
+        m_text->setText(!m_stopped_auto_discovery ? UNABLE_TO_FIND_SCANNER_SERVER_MESSAGE : AUTODISCOVER_STOPPED_MESSAGE);
+        log::debug(!m_stopped_auto_discovery ? UNABLE_TO_FIND_SCANNER_SERVER_MESSAGE : AUTODISCOVER_STOPPED_MESSAGE);
     } else {
         m_semaphore_light->set_status(ESemaphoneStatus::Green);
-        m_text->setText("Connected");
-        log::debug("Connected");
+        m_text->setText(CONNECTED_MESSAGE);
+        log::debug(CONNECTED_MESSAGE);
     }
 }
 
 void CSemaphoreWidget::sl_discover_failed(const std::string& error) {
     m_semaphore_light->set_status(ESemaphoneStatus::Red);
-    m_text->setText("Failed to discover scanner server");
-    log::warn("Failed to discover scanner server");
+    m_text->setText(FAILED_TO_DISCOVER_QUERY_MESSAGE);
+    log::warn(FAILED_TO_DISCOVER_QUERY_MESSAGE);
 }
 
 void CSemaphoreWidget::sl_query_failed(const std::string& error) {
     m_semaphore_light->set_status(ESemaphoneStatus::Red);
-    m_text->setText("Failed to query scanner server");
-    log::warn("Failed to query scanner server");
+    m_text->setText(FAILED_TO_DISCOVER_SCANNER_MESSAGE);
+    log::warn(FAILED_TO_DISCOVER_SCANNER_MESSAGE);
 }
 
 void CSemaphoreWidget::sl_stopping_auto_discovery() {
     m_semaphore_light->set_status(ESemaphoneStatus::Red);
-    m_text->setText("Server auto discovery stopped, click the red icon to try discovering scanner server");
+    m_text->setText(AUTODISCOVER_STOPPED_MESSAGE);
+    log::warn(AUTODISCOVER_STOPPED_MESSAGE);
+
+    m_stopped_auto_discovery = true;
+}
+
+void CSemaphoreWidget::sl_rediscover() {
+    m_stopped_auto_discovery = false;
+    sane_in_the_membrane::utils::mdns::CMDnsAutoFinder::get_instance().discover();
 }

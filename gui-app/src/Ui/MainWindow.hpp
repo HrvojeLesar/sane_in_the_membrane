@@ -18,7 +18,7 @@
 #include "Select/ScannerSelectWidget.hpp"
 #include "ImageView.hpp"
 #include "Select/ScannerSelectWidget.hpp"
-#include "SemaphoneWidget.hpp"
+#include "SemaphoreWidget.hpp"
 #include <QMessageBox>
 #include <QProgressBar>
 

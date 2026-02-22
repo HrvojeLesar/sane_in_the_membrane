@@ -1,15 +1,18 @@
 #include "ScannerSelect.hpp"
 #include "../../Service/DeviceList.hpp"
 #include "SynchronizedAccess.hpp"
+#include <qcombobox.h>
 #include <qvariant.h>
 
 #include "../../Utils/Globals.hpp"
 
 using namespace sane_in_the_membrane::ui::select;
 
-CScannerSelect::CScannerSelect(QWidget* parent) : QComboBox() {
+CScannerSelect::CScannerSelect(QWidget* parent) : QComboBox(parent) {
     QObject::connect(&utils::Globals::get_instance().proxies()->m_device_list_proxy, &utils::proxy::CDeviceListProxy::sig_scanners_changed, this,
                      &CScannerSelect::sl_scanners_changed);
+
+    setSizeAdjustPolicy(QComboBox::AdjustToContents);
 }
 
 void CScannerSelect::sl_scanners_changed(const utils::SharedAccessGuard<std::vector<std::shared_ptr<service::CScannerItem>>>& items) {
