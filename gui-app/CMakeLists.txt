@@ -4,7 +4,7 @@ project(gui-app)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
 
 set(FETCHCONTENT_QUIET OFF)
 include(FetchContent)
@@ -39,6 +39,7 @@ add_library(gui_lib STATIC ${SRCFILES})
 target_link_libraries(gui_lib
     PUBLIC
     Qt6::Widgets
+    Qt6::Svg
     generated_protobufs
     sane_in_the_membrane_utils_lib
     hpdf::hpdf
@@ -61,3 +62,14 @@ if (STATIC_WINDOWS_BUILD)
     target_link_libraries(Gui PRIVATE Qt6::QWindowsIntegrationPlugin)
     target_compile_definitions(Gui PRIVATE WINDOWS_QT_PLUGINS)
 endif()
+
+qt_add_resources(gui_lib "custom-icons"
+    PREFIX "/"
+    FILES
+        assets/icons/arrow-clockwise.svg
+        assets/icons/arrow-counterclockwise.svg
+        assets/icons/arrow-left.svg
+        assets/icons/arrow-right.svg
+        assets/icons/symmetry-vertical.svg
+        assets/icons/rubbish-bin.svg
+)

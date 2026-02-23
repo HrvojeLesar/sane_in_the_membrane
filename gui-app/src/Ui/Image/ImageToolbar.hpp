@@ -17,6 +17,12 @@ namespace sane_in_the_membrane::ui::image {
       public:
         void set_page_number(uint32_t page_number);
 
+      protected:
+        void changeEvent(QEvent* event) override;
+
+      private:
+        void set_icons();
+
       public:
         QPushButton* const m_btn_move_next;
         QPushButton* const m_btn_move_prev;
