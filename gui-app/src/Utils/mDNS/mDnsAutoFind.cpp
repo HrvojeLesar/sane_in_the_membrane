@@ -1,7 +1,7 @@
 #include "mDnsAutoFind.hpp"
 #include "../Globals.hpp"
-#include <grpcpp/support/channel_arguments.h>
 #include <GLogger.hpp>
+#include "../../Utils/GRpcChannelArguments.hpp"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -50,10 +50,7 @@ CMDnsAutoFinder::CMDnsAutoFinder() :
     QObject::connect(this, &CMDnsAutoFinder::sig_mdns_discovered, this, [this](const std::vector<SQueryResult>& discovered_connections) {
         log::info("Trying to update mdns records");
         if (!discovered_connections.empty()) {
-            grpc::ChannelArguments args{};
-            args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
-
-            utils::Globals::get_instance().change_channel(discovered_connections.at(0).as_address_with_port(), grpc::InsecureChannelCredentials(), args);
+            utils::Globals::get_instance().change_channel(discovered_connections.at(0).as_address_with_port(), grpc::InsecureChannelCredentials(), default_channel_args());
         } else {
             log::info("Mdns records empty");
         }

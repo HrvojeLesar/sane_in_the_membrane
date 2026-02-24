@@ -13,6 +13,7 @@
 #include <qpushbutton.h>
 #include "../Utils/Globals.hpp"
 #include "../Utils/mDNS/mDnsAutoFind.hpp"
+#include "../Utils/GRpcChannelArguments.hpp"
 
 namespace sane_in_the_membrane::ui {
     class CMainApp {
@@ -20,10 +21,7 @@ namespace sane_in_the_membrane::ui {
       public:
         CMainApp(QApplication& app) : m_app(app) {
 
-            grpc::ChannelArguments args;
-            args.SetMaxReceiveMessageSize(50 * 1024 * 1024);
-
-            utils::Globals::get_instance().init("localhost:12345", nullptr, args);
+            utils::Globals::get_instance().init("localhost:12345", nullptr, utils::default_channel_args());
 
             m_main_window = std::make_unique<CMainWindow>();
         }

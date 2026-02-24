@@ -11,7 +11,6 @@
 #include <qgroupbox.h>
 #include <qmessagebox.h>
 #include <qobject.h>
-#include <qprogressbar.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include "Scan/ScanWidget.hpp"
@@ -20,7 +19,6 @@
 #include "Select/ScannerSelectWidget.hpp"
 #include "SemaphoreWidget.hpp"
 #include <QMessageBox>
-#include <QProgressBar>
 
 namespace sane_in_the_membrane::ui {
 

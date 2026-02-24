@@ -25,7 +25,7 @@ Features, tasks and ideas to do in no particular order:
 - [x] Reorder displayed pages
 - [x] Rotate pages
 - [ ] Export in different formats (e.g. export only images)
-- [ ] Compress packets
+- [x] Compress packets
 - [x] Automatic server discovery
 - [x] Test windows build
 - [ ] Add OCR support (probably embed or require external installation of [OCRMyPdf](https://github.com/ocrmypdf/OCRmyPDF))

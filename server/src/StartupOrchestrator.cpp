@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <csignal>
+#include <grpc/compression.h>
 #include <grpcpp/resource_quota.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
@@ -61,6 +62,7 @@ namespace sane_in_the_membrane::startup {
             m_builder.SetResourceQuota(m_resource_quota);
             m_builder.AddListeningPort("[::]:0", grpc::InsecureServerCredentials(), &m_port);
             m_builder.RegisterService(&m_scanner_service);
+            m_builder.SetDefaultCompressionAlgorithm(GRPC_COMPRESS_GZIP);
 
             m_grpc_server = m_builder.BuildAndStart();
 
