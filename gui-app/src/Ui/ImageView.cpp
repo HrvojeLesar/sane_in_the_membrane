@@ -107,22 +107,16 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
     m_main_layout->addWidget(m_scroll);
 
     connect(m_save, &QPushButton::clicked, this, [this]() {
-        auto filename = QFileDialog::getSaveFileName(this, "Save pdf");
+        auto filename = QFileDialog::getSaveFileName(this, "Save pdf", QString(), "Pdf files (*.pdf)");
         if (filename.isEmpty()) {
             log::debug("Empty, exiting");
             return;
         }
+        utils::CFileUtils::enforce_pdf_extension(filename);
 
-        sane_in_the_membrane::utils::pdf::CPdfBuilder builder{};
-        builder.set_error_handler(sane_in_the_membrane::utils::pdf::CPdf::error_handler);
-        builder.set_compression_mode(HPDF_COMP_ALL);
-        auto pdf = builder.build();
-
-        for (const auto& item : get_image_items()) {
-            const auto file = item.second->file();
-            pdf.add_jpeg(file->path().string());
-        }
-
+        auto pdf         = sane_in_the_membrane::utils::pdf::CPdfBuilder::build_default();
+        auto image_paths = std::views::transform(get_image_items(), [](std::pair<int, CImageItem*>& item) { return item.second->file()->path().string(); });
+        pdf.add_jpegs(image_paths.begin(), image_paths.end());
         pdf.save(filename.toStdString());
     });
 }

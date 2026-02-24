@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <qobject.h>
 #include <vector>
 
 namespace sane_in_the_membrane::utils {
@@ -29,6 +30,11 @@ namespace sane_in_the_membrane::utils {
         std::filesystem::path m_path;
         std::ofstream         m_ofstream;
         size_t                m_size{0};
+    };
+
+    class CFileUtils {
+      public:
+        static void enforce_pdf_extension(QString& filename);
     };
 }
 

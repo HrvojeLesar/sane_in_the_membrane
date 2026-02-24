@@ -1,4 +1,6 @@
 #include "File.hpp"
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <ios>
 
@@ -37,4 +39,10 @@ std::vector<unsigned char> CFile::read() const {
     infile.close();
 
     return data;
+}
+
+void CFileUtils::enforce_pdf_extension(QString& filename) {
+    if (!filename.toLower().endsWith(".pdf")) {
+        filename += ".pdf";
+    }
 }
