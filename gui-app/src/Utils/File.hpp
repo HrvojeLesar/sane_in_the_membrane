@@ -31,11 +31,6 @@ namespace sane_in_the_membrane::utils {
         std::ofstream         m_ofstream;
         size_t                m_size{0};
     };
-
-    class CFileUtils {
-      public:
-        static void enforce_pdf_extension(QString& filename);
-    };
 }
 
 #endif // !UTILS_FILE

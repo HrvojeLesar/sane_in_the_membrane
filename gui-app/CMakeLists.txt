@@ -50,6 +50,11 @@ target_compile_definitions(gui_lib PRIVATE
 )
 target_compile_features(gui_lib PUBLIC cxx_std_23)
 
+if (OCR)
+    message("Enabling ocr support")
+    target_compile_definitions(gui_lib PUBLIC OCR)
+endif()
+
 if (NOT WIN32)
     add_executable(Gui src/main.cpp)
 else()

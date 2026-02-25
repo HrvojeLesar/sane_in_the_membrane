@@ -40,9 +40,3 @@ std::vector<unsigned char> CFile::read() const {
 
     return data;
 }
-
-void CFileUtils::enforce_pdf_extension(QString& filename) {
-    if (!filename.toLower().endsWith(".pdf")) {
-        filename += ".pdf";
-    }
-}

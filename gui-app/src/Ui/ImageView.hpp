@@ -10,6 +10,7 @@
 #include <qgridlayout.h>
 #include <qimage.h>
 #include <qlabel.h>
+#include <QCheckBox>
 #include <qobject.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
@@ -25,6 +26,7 @@
 #include "Image/ImageToolbar.hpp"
 #include <SynchronizedAccess.hpp>
 #include "Image/ImageHorizontalScroll.hpp"
+#include "../Ocr/OcrMyPdfProcess.hpp"
 
 namespace sane_in_the_membrane::ui {
     enum EMovePage : uint8_t {
@@ -81,6 +83,7 @@ namespace sane_in_the_membrane::ui {
 
       private slots:
         void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
+        void sl_save_pdf();
 
       private:
         QVBoxLayout* const                   m_main_layout;
@@ -89,6 +92,10 @@ namespace sane_in_the_membrane::ui {
         image::CImageHorizontalScroll* const m_scroll;
         QPushButton* const                   m_save;
         utils::UniqueAccess<size_t>          m_item_count{0};
+#ifdef OCR
+        QCheckBox* const      m_ocr_checkbox;
+        ocr::COcrMyPdfProcess m_ocr_processor{};
+#endif
     };
 }
 
