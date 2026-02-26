@@ -1,3 +1,5 @@
+#ifdef OCR
+
 #include "OcrMyPdfProcess.hpp"
 #include <GLogger.hpp>
 #include <QObject>
@@ -43,3 +45,5 @@ void COcrMyPdfNotifier::connect() {
     QObject::connect(&m_process, &QProcess::readyReadStandardError, this, [this]() { log::warn(m_process.readAllStandardError()); });
     QObject::connect(&m_process, &QProcess::readyReadStandardOutput, this, [this]() { log::warn(m_process.readAllStandardOutput()); });
 }
+
+#endif
