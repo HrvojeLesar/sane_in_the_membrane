@@ -124,12 +124,16 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
 }
 
 void CImageView::sl_save_pdf() {
-    QFileDialog dialog(this, "Save pdf", QString(), "Pdf files (*.pdf)");
+    QFileDialog dialog(this, "Save pdf", QString(), "Pdf (*.pdf)");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setDefaultSuffix("pdf");
-    dialog.exec();
 
     auto filename = dialog.selectedFiles().first();
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    auto     selected_files = dialog.selectedFiles();
+    QString& filename       = selected_files.first();
     if (filename.isEmpty()) {
         log::debug("Empty, exiting");
         return;

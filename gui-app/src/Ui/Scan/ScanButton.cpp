@@ -4,6 +4,7 @@
 #include "../../Service/DeviceList.hpp"
 #include "../../Utils/Globals.hpp"
 #include <GLogger.hpp>
+#include "../../Utils/ErrorDialogue.hpp"
 
 using namespace sane_in_the_membrane::ui::scan;
 
@@ -26,6 +27,7 @@ void CScanButton::sl_clicked() {
 void CScanButton::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
     if (!status->ok()) {
         log::warn("Scan failed");
+        utils::CErrorDialogue::show_message("Scan failed");
     }
     setDisabled(false);
 }

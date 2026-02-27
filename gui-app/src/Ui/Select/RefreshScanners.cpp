@@ -1,6 +1,8 @@
 #include "RefreshScanners.hpp"
 #include "../../Utils/Globals.hpp"
 #include <GLogger.hpp>
+#include <qapplication.h>
+#include "../../Utils/ErrorDialogue.hpp"
 
 using namespace sane_in_the_membrane::ui::select;
 
@@ -18,7 +20,8 @@ CRefreshButton::CRefreshButton(QWidget* parent) : QPushButton("Refresh", parent)
 }
 
 void CRefreshButton::sl_refresh_scanners_failed() {
-    log::debug("Refresh failed - button");
+    log::warn("Refresh failed - button");
+    utils::CErrorDialogue::show_message("Refresh failed");
     enable_button();
 }
 
@@ -27,7 +30,8 @@ void CRefreshButton::sl_refresh_scanners() {
 }
 
 void CRefreshButton::sl_get_scanners_failed() {
-    log::debug("Get scanners failed - button");
+    log::warn("Get scanners failed - button");
+    utils::CErrorDialogue::show_message("Failed to get scanners");
     enable_button();
 }
 

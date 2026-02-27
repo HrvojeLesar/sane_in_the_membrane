@@ -2,6 +2,7 @@
 #include "GetScannersService.hpp"
 #include <memory>
 #include <GLogger.hpp>
+#include "../Utils/ErrorDialogue.hpp"
 
 namespace sane_in_the_membrane::service {
     CScannerItem::CScannerItem(QString&& scanner_name, QString&& scanner_display_name) : m_scanner_name(scanner_name), m_scanner_display_name(scanner_display_name) {}
@@ -50,7 +51,8 @@ namespace sane_in_the_membrane::service {
     }
 
     void CDeviceList::sl_get_scanners_failed() {
-        log::warn("File size does not correspond to params");
+        // utils::CErrorDialogue::show_message("File size does not correspond to params");
+        // log::warn("File size does not correspond to params");
     }
 
     void CDeviceList::sl_get_scanners(std::shared_ptr<scanner::v1::GetScannersResponse> response) {
