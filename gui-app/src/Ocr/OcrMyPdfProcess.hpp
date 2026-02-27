@@ -24,10 +24,10 @@ namespace sane_in_the_membrane::ocr {
       public:
         COcrMyPdfProcess();
         bool is_ocrmypdf_installed() const;
-        void ocr(QString& input_file);
+        void ocr(const QString& input_file);
 
       private:
-        void start(QString& input_file);
+        void start(const QString& input_file);
         void stop();
 
       private:

@@ -128,13 +128,12 @@ void CImageView::sl_save_pdf() {
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setDefaultSuffix("pdf");
 
-    auto filename = dialog.selectedFiles().first();
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    auto     selected_files = dialog.selectedFiles();
-    QString& filename       = selected_files.first();
-    if (filename.isEmpty()) {
+    auto  selected_files = dialog.selectedFiles();
+    const auto& selected_file_name       = selected_files.first();
+    if (selected_file_name.isEmpty()) {
         log::debug("Empty, exiting");
         return;
     }
@@ -142,11 +141,11 @@ void CImageView::sl_save_pdf() {
     auto pdf         = sane_in_the_membrane::utils::pdf::CPdfBuilder::build_default();
     auto image_paths = std::views::transform(get_image_items(), [](std::pair<int, CImageItem*>& item) { return item.second->file()->path().string(); });
     pdf.add_jpegs(image_paths.begin(), image_paths.end());
-    pdf.save(filename.toStdString());
+    pdf.save(selected_file_name.toStdString());
 
 #ifdef OCR
     if (m_ocr_processor.is_ocrmypdf_installed() && m_ocr_checkbox->checkState() == Qt::CheckState::Checked)
-        m_ocr_processor.ocr(filename);
+        m_ocr_processor.ocr(selected_file_name);
 #endif
 }
 

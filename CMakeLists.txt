@@ -15,7 +15,7 @@ if (NOT WIN32)
 endif()
 
 if (STATIC_WINDOWS_BUILD)
-    message("Building QT as static library")
+    message("Building QT as a static library")
 
     if(QT6_INSTALL_PREFIX STREQUAL "" OR NOT QT6_INSTALL_PREFIX)
         set(QT6_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/qt6-install" CACHE PATH "Qt6 install prefix" FORCE)

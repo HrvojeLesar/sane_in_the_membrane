@@ -15,12 +15,12 @@ bool COcrMyPdfProcess::is_ocrmypdf_installed() const {
     return m_installed;
 }
 
-void COcrMyPdfProcess::ocr(QString& input_file) {
+void COcrMyPdfProcess::ocr(const QString& input_file) {
     stop();
     start(input_file);
 }
 
-void COcrMyPdfProcess::start(QString& input_file) {
+void COcrMyPdfProcess::start(const QString& input_file) {
     QStringList arguments{"--force-ocr", input_file, input_file};
 
     m_notifier.connect();
