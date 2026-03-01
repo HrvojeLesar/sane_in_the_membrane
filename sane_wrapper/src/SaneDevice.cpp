@@ -118,3 +118,7 @@ void sane::CSaneDevice::clear_raw_device() {
 const SANE_Device* sane::CSaneDevice::get_raw_device() const {
     return m_raw_device;
 }
+
+const sane::CSaneDeviceBuffer<2048>& sane::CSaneDevice::buffer() const {
+    return m_buffer;
+}

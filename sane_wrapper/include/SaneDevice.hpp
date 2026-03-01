@@ -43,14 +43,15 @@ namespace sane_in_the_membrane::sane {
 
             return status;
         }
-        void               cancel();
-        CSaneStatus        set_io_mode(SANE_Bool is_none_blocking);
-        SANE_String_Const  str_status(CSaneStatus status);
-        void               print_info();
+        void                                 cancel();
+        CSaneStatus                          set_io_mode(SANE_Bool is_none_blocking);
+        SANE_String_Const                    str_status(CSaneStatus status);
+        void                                 print_info();
 
-        const std::string& get_name() const;
-        const SANE_Device* get_raw_device() const;
-        void               clear_raw_device();
+        const std::string&                   get_name() const;
+        const SANE_Device*                   get_raw_device() const;
+        void                                 clear_raw_device();
+        const sane::CSaneDeviceBuffer<2048>& buffer() const;
 
       public:
         const SANE_Parameters& parameters() const {
