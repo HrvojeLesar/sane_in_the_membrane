@@ -72,6 +72,14 @@ namespace sane_in_the_membrane::mdns {
 
       private:
         void create_service() {
+            static int collision_count = 0;
+
+            if (collision_count > 5) {
+                log::error("Maximum collision retries exceeded, try again later");
+                collision_count = 0;
+                return;
+            }
+
             if (!m_group)
                 m_group = avahi_entry_group_new(m_client, s_group_callback, this);
 
@@ -82,6 +90,8 @@ namespace sane_in_the_membrane::mdns {
                                                          NULL, m_port, NULL);
 
                 if (ret == AVAHI_ERR_COLLISION) {
+                    ++collision_count;
+
                     log::info("Avahi service collision '{}', changing name", m_service_name);
                     avahi_entry_group_reset(m_group);
                     create_service();
