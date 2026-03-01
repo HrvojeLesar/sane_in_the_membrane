@@ -25,8 +25,8 @@ target_link_libraries(tests
     GTest::gtest_main
 )
 
-# target_compile_options(tests PRIVATE --coverage)
-# target_link_options(tests PRIVATE --coverage)
+target_compile_options(tests PRIVATE --coverage)
+target_link_options(tests PRIVATE --coverage)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
