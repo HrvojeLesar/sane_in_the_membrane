@@ -42,3 +42,14 @@ release_clean: cmake_release clean_build_exec
 clean:
 	@rm -rf build
 .PHONY: clean
+
+test: cmake_debug build_exec
+	ctest --test-dir build/tests -j$(nproc)
+.PHONY: test
+
+test_verbose: cmake_debug build_exec
+	ctest --test-dir build/tests -j$(nproc) -V
+.PHONY: test_verbose
+
+testv: test_verbose
+.PHONY: testv

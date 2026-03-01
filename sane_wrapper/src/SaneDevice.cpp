@@ -1,5 +1,4 @@
 #include "../include/SaneDevice.hpp"
-#include <iostream>
 #include <print>
 
 using namespace sane_in_the_membrane;

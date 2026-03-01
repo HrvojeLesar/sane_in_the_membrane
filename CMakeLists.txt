@@ -9,9 +9,14 @@ OPTION(BUILD_GUI "Builds gui executable" ON)
 OPTION(BUILD_SERVER "Builds server executable" ON)
 OPTION(STATIC_WINDOWS_BUILD "Builds a static windows binary" ON)
 OPTION(QT6_INSTALL_PREFIX "Qt install prefix" "")
+OPTION(BUILD_TESTS "Build tests" ON)
 
 if (NOT WIN32)
     set(STATIC_WINDOWS_BUILD OFF)
+endif()
+
+if (STATIC_WINDOWS_BUILD)
+    set(BUILD_TESTS OFF)
 endif()
 
 if (STATIC_WINDOWS_BUILD)
@@ -108,3 +113,8 @@ if(BUILD_SERVER AND NOT (WIN32 OR MINGW))
     add_subdirectory(sane_wrapper)
     add_subdirectory(server)
 endif()
+
+if (BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+

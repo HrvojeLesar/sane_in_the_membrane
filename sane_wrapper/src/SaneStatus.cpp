@@ -15,12 +15,12 @@ bool sane::CSaneStatus::operator!=(const CSaneStatus& other) const {
     return m_status != other.m_status;
 }
 
-bool sane::CSaneStatus::operator==(const SANE_Status& other) const {
-    return m_status == other;
+bool sane::operator==(const SANE_Status lhs, const CSaneStatus& rhs) {
+    return lhs == rhs.m_status;
 }
 
-bool sane::CSaneStatus::operator!=(const SANE_Status& other) const {
-    return m_status != other;
+bool sane::operator!=(const SANE_Status lhs, const CSaneStatus& rhs) {
+    return lhs != rhs.m_status;
 }
 
 SANE_String_Const sane::CSaneStatus::str_status() const {

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 4.2)
 project(gui-app)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
+list(REMOVE_ITEM SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
 
