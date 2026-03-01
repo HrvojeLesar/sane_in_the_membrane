@@ -114,7 +114,7 @@ if(BUILD_SERVER AND NOT (WIN32 OR MINGW))
     add_subdirectory(server)
 endif()
 
-if (BUILD_TESTS)
+if (BUILD_TESTS AND NOT WIN32)
     add_subdirectory(tests)
 endif()
 

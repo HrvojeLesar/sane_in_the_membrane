@@ -31,6 +31,8 @@ CMainWindow::CMainWindow() :
     m_central_widget->setLayout(m_main_layout);
     setCentralWidget(m_central_widget);
 
+    setWindowTitle("Scanners");
+
     show();
 }
 

@@ -11,7 +11,7 @@ pkg_check_modules(avahi-client REQUIRED IMPORTED_TARGET avahi-client)
 add_library(server_lib STATIC ${SRCFILES})
 target_link_libraries(server_lib
     PUBLIC
-        sane_in_the_membrane_test_lib
+        sane_in_the_membrane_lib
         sane_in_the_membrane_utils_lib
         generated_protobufs
         PkgConfig::avahi-client
