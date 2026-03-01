@@ -53,3 +53,8 @@ test_verbose: cmake_debug build_exec
 
 testv: test_verbose
 .PHONY: testv
+
+coverage_report:
+	mkdir -p coverage
+	gcovr -r . --html --html-details -o coverage/coverage.html
+.PHONY: coverage_report

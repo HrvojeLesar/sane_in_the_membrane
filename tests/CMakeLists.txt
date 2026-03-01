@@ -16,6 +16,16 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+add_library(coverage_settings INTERFACE)
+
+target_compile_options(coverage_settings INTERFACE --coverage)
+target_link_options(coverage_settings INTERFACE --coverage)
+
+target_link_libraries(sane_in_the_membrane_test_lib PRIVATE coverage_settings)
+target_link_libraries(server_lib_test PRIVATE coverage_settings)
+target_link_libraries(gui_lib PRIVATE coverage_settings)
+target_link_libraries(sane_in_the_membrane_utils_lib PRIVATE coverage_settings)
+
 add_executable(tests ${SRCFILES})
 target_link_libraries(tests
     sane_in_the_membrane_test_lib
@@ -24,9 +34,6 @@ target_link_libraries(tests
     sane_in_the_membrane_utils_lib
     GTest::gtest_main
 )
-
-target_compile_options(tests PRIVATE --coverage)
-target_link_options(tests PRIVATE --coverage)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
