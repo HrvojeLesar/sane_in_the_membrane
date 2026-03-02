@@ -16,23 +16,27 @@ CScanResponseReactor::CScanResponseReactor(std::shared_ptr<sane::CSaneDevice> m_
 CScanResponseReactor::~CScanResponseReactor() {}
 
 void CScanResponseReactor::OnDone() {
-    m_device->close();
+    log::info("On done");
+    if (m_device)
+        m_device->close();
 
     delete this;
 }
 
 void CScanResponseReactor::OnCancel() {
     log::debug("Cancelled");
-    m_device->cancel();
+    if (m_device)
+        m_device->cancel();
 }
 
 void CScanResponseReactor::OnWriteDone(bool ok) {
-    log::debug("Write ok");
-    if (!ok) {
+    log::trace("Write ok");
+    auto finished = *m_finished.access();
+    if (ok && !finished) {
+        next_packet();
+    } else if (!ok && !finished) {
         log::warn("Write failed");
         Finish(grpc::Status(grpc::StatusCode::UNKNOWN, "Write failed"));
-    } else {
-        next_packet();
     }
 }
 
@@ -45,11 +49,12 @@ void CScanResponseReactor::write_response() {
 }
 
 void CScanResponseReactor::next_packet() {
-    log::debug("Next packet");
+    log::trace("Next packet");
     reset_response();
 
     while (true) {
         auto status = m_device->read(m_buffer);
+        log::trace("Status: {}", status.str_status());
         if ((status.is_ok() || status == SANE_STATUS_EOF) && m_buffer.read_len > 0) {
             m_byte_data.insert(m_byte_data.end(), m_buffer.m_data.begin(), m_buffer.m_data.begin() + m_buffer.read_len);
         }
@@ -59,6 +64,7 @@ void CScanResponseReactor::next_packet() {
             return;
         }
 
+        log::trace("Status is ok: {}", status.is_ok());
         if (!status.is_ok()) {
             if (status == SANE_STATUS_EOF) {
                 write_response();

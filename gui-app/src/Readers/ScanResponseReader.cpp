@@ -28,9 +28,9 @@ void reader::CScanResponseReader::scan(const ScanRequest& request) {
     StartCall();
 }
 void reader::CScanResponseReader::OnReadDone(bool ok) {
-    log::debug("Read done");
+    log::trace("Read done");
     if (ok) {
-        log::debug("Read ok");
+        log::trace("Read ok");
         if (m_response.has_parameters()) {
             m_params          = utils::ScannerParameters(m_response.parameters());
             m_hundred_percent = ((uint64_t)m_params.bytes_per_line) * m_params.lines *
@@ -52,14 +52,14 @@ void reader::CScanResponseReader::OnReadDone(bool ok) {
 }
 
 void reader::CScanResponseReader::OnDone(const grpc::Status& s) {
-    log::debug("All done");
+    log::trace("All done");
 
     m_in_progress.store(false, std::memory_order::relaxed);
 
     reset();
     emit sig_done(std::make_shared<grpc::Status>(s), m_current_file, std::make_shared<utils::ScannerParameters>(m_params));
 
-    log::debug("Done after sig");
+    log::trace("Done after sig");
 }
 
 void reader::CScanResponseReader::reset() {
