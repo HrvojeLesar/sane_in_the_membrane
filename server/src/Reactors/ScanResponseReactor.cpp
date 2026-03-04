@@ -6,6 +6,7 @@ using namespace sane_in_the_membrane::reactor;
 CScanResponseReactor::CScanResponseReactor(std::shared_ptr<sane::CSaneDevice> m_device) : m_device(m_device) {
     if (m_device.get() != nullptr) {
         m_byte_data.reserve(10240);
+        log::debug("Starting scan");
         start_scan();
     } else {
         log::debug("Device not found");
@@ -104,11 +105,13 @@ void CScanResponseReactor::reset_response() {
 void CScanResponseReactor::start_scan() {
     auto status = m_device->open();
     if (!status.is_ok()) {
+        log::debug("Failed to open device: {}", status.str_status());
         return Finish(grpc::Status(grpc::StatusCode::CANCELLED, std::format("Failed to open device: {}", status.str_status())));
     }
 
     status = m_device->start();
     if (!status.is_ok()) {
+        log::debug("Failed to start device: {}", status.str_status());
         return Finish(grpc::Status(grpc::StatusCode::CANCELLED, std::format("Failed to start device: {}", status.str_status())));
     }
 

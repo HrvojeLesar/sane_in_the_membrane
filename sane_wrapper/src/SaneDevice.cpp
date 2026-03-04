@@ -24,6 +24,8 @@ void sane::CSaneDevice::close() {
     }
 
     // Driver should handle canceling current action for the active scan
+    // Driver did not handle canceling
+    sane_cancel(m_handle);
     sane_close(m_handle);
 
     m_handle = nullptr;
