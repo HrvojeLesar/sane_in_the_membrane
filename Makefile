@@ -44,11 +44,11 @@ clean:
 .PHONY: clean
 
 test: cmake_debug build_exec
-	ctest --test-dir build/tests -j$(nproc)
+	ctest --test-dir build/tests -j$(nproc) --output-on-failure
 .PHONY: test
 
 test_verbose: cmake_debug build_exec
-	ctest --test-dir build/tests -j$(nproc) -V
+	ctest --test-dir build/tests -j$(nproc) -V --output-on-failure
 .PHONY: test_verbose
 
 testv: test_verbose

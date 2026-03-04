@@ -1,9 +1,12 @@
 #include "SaneMock.hpp"
 
+#include <iostream>
 #include <sane/sane.h>
 #include <algorithm>
 #include <cstring>
 #include <format>
+
+#include <Assert.hpp>
 
 using namespace sane_in_the_membrane::mock;
 
@@ -146,6 +149,8 @@ void sane_exit(void) {
 }
 
 SANE_Status sane_get_devices(const SANE_Device*** device_list, SANE_Bool local_only) {
+    SITM_ASSERT(CSaneState::instance().m_initialized, "Sane is not initialized");
+
     *device_list = CSaneState::instance().sane_comptabile_device_list();
 
     return SANE_STATUS_GOOD;
@@ -171,8 +176,11 @@ SANE_Status sane_open(SANE_String_Const devicename, SANE_Handle* handle) {
 
 void sane_close(SANE_Handle handle) {
     auto mock_handle = CSaneState::instance().get_handle(handle);
-    if (mock_handle)
-        mock_handle->m_open = false;
+    if (mock_handle) {
+        SITM_ASSERT(mock_handle->m_cancelled, "Device action was not cancelled before closing.");
+        mock_handle->m_open      = false;
+        mock_handle->m_cancelled = false;
+    }
 }
 
 const SANE_Option_Descriptor* sane_get_option_descriptor(SANE_Handle handle, SANE_Int option) {
@@ -202,7 +210,8 @@ SANE_Status sane_start(SANE_Handle handle) {
     if (!mock_handle)
         return SANE_STATUS_INVAL;
 
-    mock_handle->m_started = true;
+    mock_handle->m_started   = true;
+    mock_handle->m_cancelled = false;
 
     return SANE_STATUS_GOOD;
 }
@@ -211,6 +220,8 @@ SANE_Status sane_read(SANE_Handle handle, SANE_Byte* data, SANE_Int max_length, 
     auto mock_handle = CSaneState::instance().get_handle(handle);
     if (!mock_handle)
         return SANE_STATUS_INVAL;
+
+    SITM_ASSERT(mock_handle->m_started, "Invalid read. Reading from a device that has not started.");
 
     if (mock_handle->get_read_bytes_capacity() == 0)
         return SANE_STATUS_EOF;
@@ -232,8 +243,10 @@ SANE_Status sane_read(SANE_Handle handle, SANE_Byte* data, SANE_Int max_length, 
 
 void sane_cancel(SANE_Handle handle) {
     auto mock_handle = CSaneState::instance().get_handle(handle);
-    if (mock_handle)
-        mock_handle->m_started = false;
+    if (mock_handle) {
+        mock_handle->m_started   = false;
+        mock_handle->m_cancelled = true;
+    }
 }
 
 SANE_Status sane_set_io_mode(SANE_Handle handle, SANE_Bool non_blocking) {

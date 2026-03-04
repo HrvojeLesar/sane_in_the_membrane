@@ -17,6 +17,10 @@ sane::CSane::CSane(SANE_Auth_Callback auth_callback) : m_auth_callback(auth_call
 };
 
 sane::CSane::~CSane() {
+    exit();
+}
+
+void sane::CSane::exit() {
     sane_exit();
 }
 
@@ -35,7 +39,7 @@ std::vector<std::weak_ptr<sane::CSaneDevice>> sane::CSane::get_devices(SANE_Bool
     m_devices.clear();
 
     const SANE_Device** device_list;
-    auto                status = sane_get_devices(&device_list, local_only);
+    auto status = sane_get_devices(&device_list, local_only);
 
     if (status == SANE_STATUS_GOOD) {
         for (uint32_t i = 0; device_list[i] != nullptr; i++) {

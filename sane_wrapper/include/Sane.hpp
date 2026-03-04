@@ -21,10 +21,11 @@ namespace sane_in_the_membrane::sane {
         CSane(const CSane&) noexcept  = delete;
         CSane(const CSane&&) noexcept = delete;
 
-        std::vector<std::weak_ptr<CSaneDevice>>       get_devices(SANE_Bool local_only = false);
-        std::optional<CSaneStatus>                    get_status() const;
-        bool                                          is_ok() const;
-        CSaneStatus                                   init();
+        std::vector<std::weak_ptr<CSaneDevice>> get_devices(SANE_Bool local_only = false);
+        std::optional<CSaneStatus>              get_status() const;
+        bool                                    is_ok() const;
+        CSaneStatus                             init();
+        void                                    exit();
 
       private:
         SANE_Int                                  m_version_code{};

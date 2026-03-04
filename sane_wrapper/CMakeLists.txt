@@ -34,6 +34,7 @@ if (BUILD_TESTS)
         PUBLIC "./include"
         PUBLIC "./mock"
     )
+    target_link_libraries(sane_in_the_membrane_test_lib PRIVATE sane_in_the_membrane_utils_lib)
 
     target_compile_options(sane_in_the_membrane_test_lib PRIVATE ${COMPILER_WARNING_FLAGS})
     target_compile_features(sane_in_the_membrane_test_lib PUBLIC cxx_std_23)

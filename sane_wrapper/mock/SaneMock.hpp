@@ -35,6 +35,7 @@ namespace sane_in_the_membrane::mock {
         const SMockDevice* const m_device;
         SANE_Parameters          m_parameters{.format = SANE_FRAME_RED, .last_frame = true, .bytes_per_line = 1024, .pixels_per_line = 1024, .lines = 1024, .depth = 8};
         bool                     m_started{false};
+        bool                     m_cancelled{false};
 
       private:
         size_t m_max_read_length{MAX_READ_LENGTH};

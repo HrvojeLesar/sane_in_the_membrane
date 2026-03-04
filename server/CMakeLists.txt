@@ -19,6 +19,10 @@ target_link_libraries(server_lib
 
 if (BUILD_TESTS)
     add_library(server_lib_test STATIC ${SRCFILES})
+    target_include_directories(server_lib_test
+        PUBLIC 
+            "./src"
+    )
     target_link_libraries(server_lib_test
         PUBLIC
             sane_in_the_membrane_test_lib
