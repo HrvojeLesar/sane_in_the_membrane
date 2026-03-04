@@ -24,8 +24,12 @@ Features, tasks and ideas to do in no particular order:
 - [x] Make UI nicer
 - [x] Reorder displayed pages
 - [x] Rotate pages
-- [ ] Export in different formats (e.g. export only images)
 - [x] Compress packets
 - [x] Automatic server discovery
 - [x] Test windows build
-- [ ] Add OCR support (probably embed or require external installation of [OCRMyPdf](https://github.com/ocrmypdf/OCRmyPDF))
+- [x] Add OCR support - checks for OCRMyPdf "executable"
+- [ ] Add tests
+- [ ] Decouple pages logic from direct rendering
+- [ ] Ask to quit only when files are not saved
+- [ ] Session restoration
+- [ ] Document dependencies and build process
