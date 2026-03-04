@@ -10,6 +10,7 @@ OPTION(BUILD_SERVER "Builds server executable" ON)
 OPTION(STATIC_WINDOWS_BUILD "Builds a static windows binary" ON)
 OPTION(QT6_INSTALL_PREFIX "Qt install prefix" "")
 OPTION(BUILD_TESTS "Build tests" ON)
+OPTION(OCR "Enable ocr support" ON)
 
 if (NOT WIN32)
     set(STATIC_WINDOWS_BUILD OFF)
