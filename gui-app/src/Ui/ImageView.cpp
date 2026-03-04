@@ -114,6 +114,8 @@ CImageView::CImageView(std::string filepath, QWidget* parent) :
 #ifdef OCR
     if (m_ocr_processor.is_ocrmypdf_installed())
         save_layout->addWidget(m_ocr_checkbox);
+    else
+        m_ocr_checkbox->setVisible(false);
 #endif
 
     m_main_layout->addLayout(save_layout);
