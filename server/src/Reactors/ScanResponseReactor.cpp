@@ -1,17 +1,14 @@
 #include "ScanResponseReactor.hpp"
 #include <GLogger.hpp>
+#include <Assert.hpp>
 
 using namespace sane_in_the_membrane::reactor;
 
 CScanResponseReactor::CScanResponseReactor(std::shared_ptr<sane::CSaneDevice> m_device) : m_device(m_device) {
-    if (m_device.get() != nullptr) {
-        m_byte_data.reserve(10240);
-        log::debug("Starting scan");
-        start_scan();
-    } else {
-        log::debug("Device not found");
-        Finish(grpc::Status(grpc::StatusCode::ABORTED, "Device not found"));
-    }
+    SITM_ASSERT(m_device.get() != nullptr, "Device should never be null");
+    m_byte_data.reserve(10240);
+    log::debug("Starting scan");
+    start_scan();
 }
 
 CScanResponseReactor::~CScanResponseReactor() {}
@@ -134,4 +131,13 @@ void CScanResponseReactor::Finish(grpc::Status status) {
     *finished = true;
 
     grpc::ServerWriteReactor<ScanResponse>::Finish(status);
+}
+
+CEmptyScanResponseReactor::CEmptyScanResponseReactor() {
+    log::debug("Device not found");
+    Finish(grpc::Status(grpc::StatusCode::ABORTED, "Device not found"));
+}
+
+void CEmptyScanResponseReactor::OnDone() {
+    delete this;
 }

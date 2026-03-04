@@ -2,6 +2,7 @@
 #define SCAN_RESPONSE_REACTOR
 
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/support/server_callback.h>
 #include <memory>
 #include <sane/sane.h>
 #include <string>
@@ -42,6 +43,12 @@ namespace sane_in_the_membrane::reactor {
         sane::CSaneDeviceBuffer<2048>                   m_buffer{};
         std::string*                                    m_byte_data_string{};
         sane_in_the_membrane::utils::UniqueAccess<bool> m_finished{false};
+    };
+
+    class CEmptyScanResponseReactor : public grpc::ServerWriteReactor<ScanResponse> {
+      public:
+        CEmptyScanResponseReactor();
+        void OnDone() override;
     };
 }
 

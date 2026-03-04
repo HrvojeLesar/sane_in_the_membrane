@@ -79,7 +79,8 @@ grpc::ServerWriteReactor<ScanResponse>* CScannerServiceImpl::Scan(grpc::Callback
         device             = m_service.find_device(scanner_name);
     }
 
-    log::debug("Found device");
+    if (!device)
+        return new reactor::CEmptyScanResponseReactor();
 
     return new reactor::CScanResponseReactor(device);
 }
