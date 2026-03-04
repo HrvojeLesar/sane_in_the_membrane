@@ -42,8 +42,8 @@ void COcrMyPdfNotifier::disconnect_connections() {
 
 void COcrMyPdfNotifier::connect() {
     QObject::connect(&m_process, &QProcess::started, this, [this]() {});
-    QObject::connect(&m_process, &QProcess::readyReadStandardError, this, [this]() { log::warn(m_process.readAllStandardError()); });
-    QObject::connect(&m_process, &QProcess::readyReadStandardOutput, this, [this]() { log::warn(m_process.readAllStandardOutput()); });
+    QObject::connect(&m_process, &QProcess::readyReadStandardError, this, [this]() { log::warn(m_process.readAllStandardError().toStdString()); });
+    QObject::connect(&m_process, &QProcess::readyReadStandardOutput, this, [this]() { log::warn(m_process.readAllStandardOutput().toStdString()); });
 }
 
 #endif
