@@ -66,6 +66,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT BUILD_STATIC)
         LANGUAGE grpc
         GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
         PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:gRPC::grpc_cpp_plugin>"
+        PLUGIN_OPTIONS "generate_mock_code=true"
         IMPORT_DIRS ${PROTO_IMPORT_DIRS}
         PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
 else()
@@ -74,6 +75,7 @@ else()
         LANGUAGE grpc
         GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
         PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:grpc_cpp_plugin>"
+        PLUGIN_OPTIONS "generate_mock_code=true"
         IMPORT_DIRS ${PROTO_IMPORT_DIRS}
         PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
 endif()
