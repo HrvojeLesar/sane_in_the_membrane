@@ -100,6 +100,7 @@ void CScanResponseReactor::reset_response() {
 }
 
 void CScanResponseReactor::start_scan() {
+    reset_response();
     auto status = m_device->open();
     if (!status.is_ok()) {
         log::debug("Failed to open device: {}", status.str_status());

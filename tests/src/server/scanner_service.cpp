@@ -1,12 +1,15 @@
 #include "scanner/v1/scanner.pb.h"
 #include <gmock/gmock.h>
+#include <grpcpp/client_context.h>
 #include <grpcpp/server_context.h>
+#include <grpcpp/support/sync_stream.h>
 #include <gtest/gtest.h>
 
 #include <Reactors/ScanResponseReactor.hpp>
 #include <Service/ScannerService.hpp>
 #include <Sane.hpp>
 #include <SaneMock.hpp>
+#include <memory>
 
 using namespace sane_in_the_membrane::service;
 using namespace sane_in_the_membrane::sane;
@@ -45,6 +48,36 @@ class CScannerServiceHelper {
     RefreshScannersResponse m_refresh_scanners_response{};
 
     ScanRequest             m_scan_request{};
+};
+
+class CMockGrpcServer : public ::testing::Test {
+  protected:
+    CMockGrpcServer() {}
+
+    void SetUp() override {
+        grpc::ServerBuilder builder;
+        builder.AddListeningPort("[::]:0", grpc::InsecureServerCredentials(), &m_port);
+        builder.RegisterService(&m_service_helper.m_service_impl);
+
+        m_server = builder.BuildAndStart();
+        m_server_address << "localhost:" << m_port;
+    }
+
+    void TearDown() override {
+        m_server->Shutdown();
+    }
+
+    void ResetStub() {
+        grpc::ChannelArguments         args;
+        std::shared_ptr<grpc::Channel> channel = grpc::CreateCustomChannel(m_server_address.str(), grpc::InsecureChannelCredentials(), args);
+        m_stub                                 = std::make_unique<scanner::v1::ScannerService::Stub>(channel);
+    }
+
+    std::unique_ptr<scanner::v1::ScannerService::Stub> m_stub{};
+    std::unique_ptr<grpc::Server>                      m_server{};
+    std::ostringstream                                 m_server_address{};
+    int                                                m_port{};
+    CScannerServiceHelper                              m_service_helper{};
 };
 
 TEST(Server, EmptyScanners) {
@@ -105,4 +138,34 @@ TEST(Server, ScanDeviceNotFound) {
     auto*                 reactor = mock_service.scan("nonexistent_scanner");
 
     EXPECT_NE(reactor, nullptr);
+}
+
+TEST_F(CMockGrpcServer, Scan) {
+    ResetStub();
+
+    grpc::ClientContext context{};
+    ScanRequest         request{};
+    ScanResponse        response{};
+
+    CSaneState::instance().generate_mock_device();
+    m_service_helper.refresh_devices();
+
+    auto device_name = CSaneState::instance().m_devices.front()->name;
+    auto device      = m_service_helper.m_service.find_device(device_name);
+
+    request.set_scanner_name(device_name);
+    auto reader = m_stub->Scan(&context, request);
+
+    // WARN: First response never contains any data
+    // WARN: Currently all test responses return 1024 bytes of data that contain all 1
+    bool first_frame = true;
+    while (reader->Read(&response)) {
+        EXPECT_EQ(response.scanner_name(), device_name);
+        if (first_frame) {
+            first_frame = false;
+        } else {
+            EXPECT_EQ(response.data().raw_bytes().size(), 1024);
+            EXPECT_EQ(response.data().raw_bytes(), std::string(1024, '\1'));
+        }
+    }
 }

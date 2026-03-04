@@ -1,6 +1,5 @@
 #include "SaneMock.hpp"
 
-#include <iostream>
 #include <sane/sane.h>
 #include <algorithm>
 #include <cstring>
@@ -223,20 +222,20 @@ SANE_Status sane_read(SANE_Handle handle, SANE_Byte* data, SANE_Int max_length, 
 
     SITM_ASSERT(mock_handle->m_started, "Invalid read. Reading from a device that has not started.");
 
-    if (mock_handle->get_read_bytes_capacity() == 0)
-        return SANE_STATUS_EOF;
-
     size_t write_bytes = max_length;
     size_t capacity    = mock_handle->get_read_bytes_capacity();
     if (write_bytes > capacity)
         write_bytes = capacity;
 
-    mock_handle->set_bytes_read(mock_handle->get_bytes_read() + write_bytes);
-
-    std::memset(data, 1, sizeof(SANE_Byte));
-
     if (length)
         *length = write_bytes;
+
+    if (capacity == 0)
+        return SANE_STATUS_EOF;
+
+    mock_handle->set_bytes_read(mock_handle->get_bytes_read() + write_bytes);
+
+    std::memset(data, 1, sizeof(SANE_Byte) * write_bytes);
 
     return SANE_STATUS_GOOD;
 }
