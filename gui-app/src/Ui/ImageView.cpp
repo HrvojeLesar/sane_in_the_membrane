@@ -156,6 +156,8 @@ void CImageView::sl_save_pdf() {
     if (m_ocr_processor.is_ocrmypdf_installed() && m_ocr_checkbox->checkState() == Qt::CheckState::Checked)
         m_ocr_processor.ocr(selected_file_name);
 #endif
+
+    emit sig_document_saved();
 }
 
 void CImageView::add_image(std::shared_ptr<utils::CFile>& file) {
@@ -163,8 +165,6 @@ void CImageView::add_image(std::shared_ptr<utils::CFile>& file) {
     auto* item  = new CImageItem(file, items.size() + 1, this);
 
     m_grid->addWidget(item);
-
-    log::debug("Grid count: {}", m_grid->count());
 
     connect(item, &CImageItem::sig_remove_requested, this, [this, item]() { remove_item(item); });
 
@@ -195,6 +195,8 @@ void CImageView::add_image(std::shared_ptr<utils::CFile>& file) {
         m_grid->insertWidget(swap_with_page_index, last_item);
         m_grid->insertWidget(page_index, first_item);
     });
+
+    emit sig_document_changed();
 }
 
 void CImageView::remove_item(CImageItem* item) {
@@ -205,6 +207,8 @@ void CImageView::remove_item(CImageItem* item) {
 
     auto items = image_items();
     std::ranges::for_each(items | std::views::drop(item->get_page_number()), [](CImageItem* item) { item->set_page_number(item->get_page_number() - 1); });
+
+    emit sig_document_changed();
 }
 
 void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {

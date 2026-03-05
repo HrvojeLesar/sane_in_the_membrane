@@ -31,6 +31,10 @@ namespace sane_in_the_membrane::ui {
 
         void closeEvent(QCloseEvent* event) override;
 
+      public slots:
+        void sl_documents_changed();
+        void sl_document_saved();
+
       private:
         QWidget* const                              m_central_widget;
         QVBoxLayout* const                          m_main_layout;

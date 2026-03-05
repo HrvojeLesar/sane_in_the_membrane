@@ -33,14 +33,23 @@ CMainWindow::CMainWindow() :
 
     setWindowTitle("Scanners");
 
+    auto image_view = findChild<CImageView*>();
+    if (image_view) {
+        QObject::connect(image_view, &CImageView::sig_document_saved, this, &CMainWindow::sl_document_saved);
+        QObject::connect(image_view, &CImageView::sig_document_changed, this, &CMainWindow::sl_documents_changed);
+    }
+
     show();
 }
 
 CMainWindow::~CMainWindow() {}
 
 void CMainWindow::closeEvent(QCloseEvent* event) {
+    if (!isWindowModified())
+        return event->accept();
+
     QMessageBox confirm_box{};
-    confirm_box.setText("Close application ?");
+    confirm_box.setText("You have unsaved changes. Are you sure you want to close the program ?");
 
     confirm_box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     confirm_box.setDefaultButton(QMessageBox::Ok);
@@ -57,4 +66,12 @@ void CMainWindow::closeEvent(QCloseEvent* event) {
         case QMessageBox::Cancel:
         default: event->ignore(); break;
     }
+}
+
+void CMainWindow::sl_documents_changed() {
+    setWindowModified(true);
+}
+
+void CMainWindow::sl_document_saved() {
+    setWindowModified(false);
 }

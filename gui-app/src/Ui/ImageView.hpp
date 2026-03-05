@@ -81,6 +81,9 @@ namespace sane_in_the_membrane::ui {
         void add_image(std::shared_ptr<utils::CFile>& file);
         void remove_item(CImageItem* item);
 
+      signals:
+        void sig_document_saved();
+        void sig_document_changed();
 
       private slots:
         void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
