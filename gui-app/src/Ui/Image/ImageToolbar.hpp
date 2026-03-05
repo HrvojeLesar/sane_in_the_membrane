@@ -12,10 +12,10 @@ namespace sane_in_the_membrane::ui::image {
         Q_OBJECT
 
       public:
-        CImageToolbar(uint32_t page_number, QWidget* parent = nullptr);
+        CImageToolbar(std::size_t page_number, QWidget* parent = nullptr);
 
       public:
-        void set_page_number(uint32_t page_number);
+        void set_page_number(std::size_t page_number);
 
       protected:
         void changeEvent(QEvent* event) override;

@@ -11,6 +11,7 @@
 #include <qimage.h>
 #include <qlabel.h>
 #include <QCheckBox>
+#include <qlist.h>
 #include <qobject.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
@@ -18,7 +19,6 @@
 #include <qtmetamacros.h>
 #include <qtransform.h>
 #include <qwidget.h>
-#include <vector>
 #include <QScrollArea>
 #include <QPushButton>
 #include "../Utils/File.hpp"
@@ -37,14 +37,15 @@ namespace sane_in_the_membrane::ui {
     class CImageItem : public QWidget {
         Q_OBJECT
       public:
-        CImageItem(std::shared_ptr<utils::CFile> file, uint32_t page_number, QWidget* parent);
+        CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent);
         ~CImageItem();
 
-        std::shared_ptr<utils::CFile> file();
+        std::shared_ptr<utils::CFile>        file() const;
+        const std::shared_ptr<utils::CFile>& file_ref() const;
 
       public:
-        uint32_t get_page_number();
-        void     set_page_number(uint32_t page_number);
+        std::size_t get_page_number();
+        void        set_page_number(std::size_t page_number);
 
       signals:
         void sig_remove_requested();
@@ -66,7 +67,7 @@ namespace sane_in_the_membrane::ui {
         QTransform                      m_transform{};
         ui::image::CImageToolbar* const m_toolbar;
         bool                            m_preview_disabled{false};
-        uint32_t                        m_page_number;
+        std::size_t                     m_page_number;
     };
 
     class CImageView : public QWidget {
@@ -77,13 +78,16 @@ namespace sane_in_the_membrane::ui {
 
       public:
         explicit CImageView(std::string filepath = "", QWidget* parent = nullptr);
-        void                                     add_image(std::shared_ptr<utils::CFile> file);
-        void                                     remove_item(CImageItem* item);
-        std::vector<std::pair<int, CImageItem*>> get_image_items();
+        void add_image(std::shared_ptr<utils::CFile>& file);
+        void remove_item(CImageItem* item);
+
 
       private slots:
         void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
         void sl_save_pdf();
+
+      private:
+        QList<CImageItem*> image_items() const;
 
       private:
         QVBoxLayout* const                   m_main_layout;
@@ -91,7 +95,6 @@ namespace sane_in_the_membrane::ui {
         QHBoxLayout* const                   m_grid;
         image::CImageHorizontalScroll* const m_scroll;
         QPushButton* const                   m_save;
-        utils::UniqueAccess<size_t>          m_item_count{0};
 #ifdef OCR
         QCheckBox* const      m_ocr_checkbox;
         ocr::COcrMyPdfProcess m_ocr_processor{};

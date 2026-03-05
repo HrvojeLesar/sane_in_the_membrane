@@ -13,7 +13,7 @@
 
 using namespace sane_in_the_membrane::ui::image;
 
-CImageToolbar::CImageToolbar(uint32_t page_number, QWidget* parent) :
+CImageToolbar::CImageToolbar(std::size_t page_number, QWidget* parent) :
     QWidget(parent), m_btn_move_next(new QPushButton(this)), m_btn_move_prev(new QPushButton(this)), m_btn_rotate_left(new QPushButton(this)),
     m_btn_rotate_right(new QPushButton(this)), m_btn_mirror(new QPushButton(this)), m_btn_delete(new QPushButton(this)), m_page_number(new QLabel(this)) {
 
@@ -47,7 +47,7 @@ CImageToolbar::CImageToolbar(uint32_t page_number, QWidget* parent) :
     layout->addStretch();
 }
 
-void CImageToolbar::set_page_number(uint32_t page_number) {
+void CImageToolbar::set_page_number(std::size_t page_number) {
     m_page_number->setText(std::format("{}.", page_number).c_str());
 }
 

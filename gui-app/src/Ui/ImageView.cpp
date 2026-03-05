@@ -1,8 +1,7 @@
 #include "ImageView.hpp"
+#include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <memory>
-#include <optional>
 #include <qboxlayout.h>
 #include <qforeach.h>
 #include <qimage.h>
@@ -14,6 +13,7 @@
 #include <qwidget.h>
 #include "../Utils/Globals.hpp"
 #include <QFileDialog>
+#include <ranges>
 #include <string>
 #include "../Utils/Pdf/Pdf.hpp"
 #include "Image/ImageToolbar.hpp"
@@ -25,11 +25,12 @@
 #include <vector>
 #include <GLogger.hpp>
 
+using namespace sane_in_the_membrane;
 using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::utils::pdf;
 
 CImageItem::~CImageItem() {}
-CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, uint32_t page_number, QWidget* parent) :
+CImageItem::CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent) :
     QWidget(parent), m_file(file), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)), m_pixmap(QString::fromStdString(file->path().string())),
     m_toolbar(new image::CImageToolbar{page_number}), m_page_number(page_number) {
 
@@ -61,7 +62,12 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile> file, uint32_t page_number,
     m_layout->addWidget(m_image_label, 0, Qt::AlignHCenter);
     m_layout->addWidget(m_toolbar, 0, Qt::AlignHCenter);
 }
-std::shared_ptr<sane_in_the_membrane::utils::CFile> CImageItem::file() {
+
+const std::shared_ptr<utils::CFile>& CImageItem::file_ref() const {
+    return m_file;
+}
+
+std::shared_ptr<utils::CFile> CImageItem::file() const {
     return m_file;
 }
 
@@ -88,11 +94,12 @@ void CImageItem::resizeEvent(QResizeEvent* event) {
     // set_pixmap();
 }
 
-void CImageItem::set_page_number(uint32_t page_number) {
+void CImageItem::set_page_number(std::size_t page_number) {
     m_page_number = page_number;
     m_toolbar->set_page_number(page_number);
 }
-uint32_t CImageItem::get_page_number() {
+
+std::size_t CImageItem::get_page_number() {
     return m_page_number;
 }
 
@@ -133,15 +140,15 @@ void CImageView::sl_save_pdf() {
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    auto  selected_files = dialog.selectedFiles();
-    const auto& selected_file_name       = selected_files.first();
+    auto        selected_files     = dialog.selectedFiles();
+    const auto& selected_file_name = selected_files.first();
     if (selected_file_name.isEmpty()) {
         log::debug("Empty, exiting");
         return;
     }
 
     auto pdf         = sane_in_the_membrane::utils::pdf::CPdfBuilder::build_default();
-    auto image_paths = std::views::transform(get_image_items(), [](std::pair<int, CImageItem*>& item) { return item.second->file()->path().string(); });
+    auto image_paths = std::views::transform(image_items(), [](const CImageItem* item) { return item->file_ref()->path().string(); });
     pdf.add_jpegs(image_paths.begin(), image_paths.end());
     pdf.save(selected_file_name.toStdString());
 
@@ -151,51 +158,42 @@ void CImageView::sl_save_pdf() {
 #endif
 }
 
-void CImageView::add_image(std::shared_ptr<utils::CFile> file) {
-    auto item_count_guard = m_item_count.access();
-    *item_count_guard += 1;
-    auto* item = new CImageItem(file, *item_count_guard, this);
+void CImageView::add_image(std::shared_ptr<utils::CFile>& file) {
+    auto  items = image_items();
+    auto* item  = new CImageItem(file, items.size() + 1, this);
 
     m_grid->addWidget(item);
+
+    log::debug("Grid count: {}", m_grid->count());
 
     connect(item, &CImageItem::sig_remove_requested, this, [this, item]() { remove_item(item); });
 
     connect(item, &CImageItem::sig_move_page_by, this, [this](CImageItem* item, EMovePage move_to) {
-        auto               items = get_image_items();
-        std::optional<int> potential_item_index{std::nullopt};
-
-        for (const auto& other_item : items) {
-            if (other_item.second == item) {
-                potential_item_index = other_item.first;
-                break;
-            }
-        }
-
-        if (!potential_item_index.has_value()) {
+        auto page = item->get_page_number();
+        if (page <= 0)
             return;
-        }
 
-        auto item_index = potential_item_index.value();
-        auto increment  = move_to == EMovePage::LEFT ? -1 : 1;
-
-        int  set_item_to_index = item_index + increment;
-        if (set_item_to_index < 0 || static_cast<size_t>(set_item_to_index) >= *(m_item_count.shared_access())) {
+        auto swap_with_page = move_to == EMovePage::LEFT ? page - 1 : page + 1;
+        if (swap_with_page == 0 || swap_with_page > m_grid->count())
             return;
+
+        auto page_index           = page - 1;
+        auto swap_with_page_index = swap_with_page - 1;
+
+        if (swap_with_page_index > page_index)
+            std::swap(page_index, swap_with_page_index);
+
+        auto* last_item  = qobject_cast<CImageItem*>(m_grid->itemAt(page_index)->widget());
+        auto* first_item = qobject_cast<CImageItem*>(m_grid->itemAt(swap_with_page_index)->widget());
+
+        {
+            auto page = last_item->get_page_number();
+            last_item->set_page_number(first_item->get_page_number());
+            first_item->set_page_number(page);
         }
 
-        auto* other_item = qobject_cast<CImageItem*>(m_grid->itemAt(set_item_to_index)->widget());
-
-        if (set_item_to_index > item_index) {
-            std::swap(set_item_to_index, item_index);
-            std::swap(item, other_item);
-        }
-
-        auto page_number = item->get_page_number();
-        item->set_page_number(other_item->get_page_number());
-        other_item->set_page_number(page_number);
-
-        m_grid->insertWidget(set_item_to_index, item);
-        m_grid->insertWidget(item_index, other_item);
+        m_grid->insertWidget(swap_with_page_index, last_item);
+        m_grid->insertWidget(page_index, first_item);
     });
 }
 
@@ -205,13 +203,8 @@ void CImageView::remove_item(CImageItem* item) {
     m_grid->removeWidget(item);
     item->deleteLater();
 
-    *m_item_count.access() -= 1;
-
-    auto items = get_image_items();
-    for (size_t item_index = 0; item_index < items.size(); item_index++) {
-        auto item = items.at(item_index).second;
-        item->set_page_number(item_index + 1);
-    }
+    auto items = image_items();
+    std::ranges::for_each(items | std::views::drop(item->get_page_number()), [](CImageItem* item) { item->set_page_number(item->get_page_number() - 1); });
 }
 
 void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
@@ -233,21 +226,6 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     add_image(image_file);
 }
 
-std::vector<std::pair<int, CImageItem*>> CImageView::get_image_items() {
-    std::vector<std::pair<int, CImageItem*>> items{};
-
-    for (int i = 0; i < m_grid->count(); i++) {
-        auto potential_item = m_grid->itemAt(i);
-        if (potential_item) {
-            auto widget = potential_item->widget();
-            if (widget) {
-                auto* item = qobject_cast<CImageItem*>(widget);
-                if (item) {
-                    items.emplace_back(i, item);
-                }
-            }
-        }
-    }
-
-    return items;
+QList<CImageItem*> CImageView::image_items() const {
+    return QWidget::findChildren<CImageItem*>();
 }
