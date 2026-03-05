@@ -31,7 +31,7 @@ CMainWindow::CMainWindow() :
     m_central_widget->setLayout(m_main_layout);
     setCentralWidget(m_central_widget);
 
-    setWindowTitle("Scanners");
+    setWindowTitle("Scanners [*]");
 
     auto image_view = findChild<CImageView*>();
     if (image_view) {
@@ -68,8 +68,11 @@ void CMainWindow::closeEvent(QCloseEvent* event) {
     }
 }
 
-void CMainWindow::sl_documents_changed() {
-    setWindowModified(true);
+void CMainWindow::sl_documents_changed(std::size_t item_count) {
+    if (item_count != 0)
+        setWindowModified(true);
+    else
+        setWindowModified(false);
 }
 
 void CMainWindow::sl_document_saved() {

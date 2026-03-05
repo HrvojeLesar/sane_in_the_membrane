@@ -1,6 +1,4 @@
 #include "File.hpp"
-#include <algorithm>
-#include <cctype>
 #include <fstream>
 #include <ios>
 

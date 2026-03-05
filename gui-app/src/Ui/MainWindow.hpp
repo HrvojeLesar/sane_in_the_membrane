@@ -32,7 +32,7 @@ namespace sane_in_the_membrane::ui {
         void closeEvent(QCloseEvent* event) override;
 
       public slots:
-        void sl_documents_changed();
+        void sl_documents_changed(std::size_t item_count);
         void sl_document_saved();
 
       private:

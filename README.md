@@ -29,7 +29,7 @@ Features, tasks and ideas to do in no particular order:
 - [x] Test windows build
 - [x] Add OCR support - checks for OCRMyPdf "executable"
 - [ ] Add tests
-- [ ] Decouple pages logic from direct rendering
-- [ ] Ask to quit only when files are not saved
+- [x] Decouple pages logic from direct rendering
+- [x] Ask to quit only when files are not saved
 - [ ] Session restoration
 - [ ] Document dependencies and build process

@@ -25,21 +25,31 @@
 #include "../Utils/ScannerUtils.hpp"
 #include "Image/ImageToolbar.hpp"
 #include <SynchronizedAccess.hpp>
+#include <vector>
 #include "Image/ImageHorizontalScroll.hpp"
 #include "../Ocr/OcrMyPdfProcess.hpp"
 
 namespace sane_in_the_membrane::ui {
-    enum EMovePage : uint8_t {
+    enum EMoveDirection : uint8_t {
         LEFT,
         RIGHT
     };
 
+    class CImageItemContainer;
+    class CImageItemManager;
+
     class CImageItem : public QWidget {
         Q_OBJECT
+
+        friend class CImageItemContainer;
+
       public:
-        CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent);
         ~CImageItem();
 
+      private:
+        CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent);
+
+      public:
         std::shared_ptr<utils::CFile>        file() const;
         const std::shared_ptr<utils::CFile>& file_ref() const;
 
@@ -48,9 +58,9 @@ namespace sane_in_the_membrane::ui {
         void        set_page_number(std::size_t page_number);
 
       signals:
-        void sig_remove_requested();
+        void sig_remove_requested(CImageItem* item);
         void sig_reposition();
-        void sig_move_page_by(CImageItem* item, EMovePage move_to);
+        void sig_move_page_by(CImageItem* item, EMoveDirection move_to);
 
       private slots:
         void sl_remove_me();
@@ -70,6 +80,36 @@ namespace sane_in_the_membrane::ui {
         std::size_t                     m_page_number;
     };
 
+    class CImageItemManager {
+      public:
+        ~CImageItemManager();
+
+        // Takes ownership of item
+        CImageItem*                     add_item(CImageItem* item);
+        void                            remove_item(CImageItem* item);
+        const std::vector<CImageItem*>& items() const;
+
+      private:
+        std::vector<CImageItem*> m_items;
+    };
+
+    class CImageItemContainer : public QHBoxLayout {
+        Q_OBJECT
+
+      public:
+        CImageItemContainer(QWidget* parent);
+        ~CImageItemContainer();
+
+        CImageItem*                     add_image(std::shared_ptr<utils::CFile>& file, QWidget* parent);
+        void                            remove_image(CImageItem* item);
+        void                            move_image(CImageItem* item, EMoveDirection direction);
+        std::size_t                     image_count() const;
+        const std::vector<CImageItem*>& items() const;
+
+      private:
+        CImageItemManager m_manager;
+    };
+
     class CImageView : public QWidget {
         Q_OBJECT
 
@@ -79,23 +119,21 @@ namespace sane_in_the_membrane::ui {
       public:
         explicit CImageView(std::string filepath = "", QWidget* parent = nullptr);
         void add_image(std::shared_ptr<utils::CFile>& file);
-        void remove_item(CImageItem* item);
 
       signals:
         void sig_document_saved();
-        void sig_document_changed();
+        void sig_document_changed(std::size_t item_count);
 
       private slots:
         void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
         void sl_save_pdf();
-
-      private:
-        QList<CImageItem*> image_items() const;
+        void move_image(CImageItem* item, EMoveDirection direction);
+        void remove_image(CImageItem* item);
 
       private:
         QVBoxLayout* const                   m_main_layout;
         QWidget* const                       m_image_container;
-        QHBoxLayout* const                   m_grid;
+        CImageItemContainer* const           m_grid;
         image::CImageHorizontalScroll* const m_scroll;
         QPushButton* const                   m_save;
 #ifdef OCR
