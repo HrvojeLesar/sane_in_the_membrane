@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "../Utils/File.hpp"
@@ -25,7 +26,16 @@ namespace sane_in_the_membrane::service {
         CFileManager(std::filesystem::path& temp_dir);
         CFileManager(std::filesystem::path&& temp_dir);
 
-        std::shared_ptr<utils::CFile>            new_temp_file();
+        std::shared_ptr<utils::CFile> new_temp_file();
+
+        template <typename T>
+        T new_temp_file_unmanaged(const std::string_view filename) {
+            auto filepath = m_temp_dir;
+            filepath.append(std::format("{}", filename));
+
+            return T(filepath);
+        }
+
         std::shared_ptr<utils::CFile>            new_temp_file_with_extension(const char* extension);
         std::shared_ptr<utils::CFile>            new_temp_file_with_extension(const std::string& extension);
         void                                     write_to_file(std::shared_ptr<utils::CFile>& file, std::string& data);

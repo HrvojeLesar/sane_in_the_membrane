@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 4.2)
 
-project(gui-app)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION_RAW)
+string(STRIP ${VERSION_RAW} VER)
+
+project(gui-app
+    VERSION ${VER}
+)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp
+    @ONLY
+)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 list(REMOVE_ITEM SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
@@ -50,6 +61,8 @@ target_compile_definitions(gui_lib PRIVATE
     NOMINMAX
 )
 target_compile_features(gui_lib PUBLIC cxx_std_23)
+
+target_include_directories(gui_lib PUBLIC "./src")
 
 if (OCR)
     message("Enabling OCR support")

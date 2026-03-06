@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <grpcpp/support/status.h>
 #include <memory>
+#include <optional>
 #include <qboxlayout.h>
 #include <qevent.h>
 #include <qgridlayout.h>
@@ -18,16 +19,18 @@
 #include <qscrollarea.h>
 #include <qtmetamacros.h>
 #include <qtransform.h>
+#include <qtypes.h>
 #include <qwidget.h>
 #include <QScrollArea>
 #include <QPushButton>
-#include "../Utils/File.hpp"
-#include "../Utils/ScannerUtils.hpp"
+#include "Utils/File.hpp"
+#include "Utils/ScannerUtils.hpp"
 #include "Image/ImageToolbar.hpp"
 #include <SynchronizedAccess.hpp>
 #include <vector>
 #include "Image/ImageHorizontalScroll.hpp"
-#include "../Ocr/OcrMyPdfProcess.hpp"
+#include "Ocr/OcrMyPdfProcess.hpp"
+#include "Service/SessionService.hpp"
 
 namespace sane_in_the_membrane::ui {
     enum EMoveDirection : uint8_t {
@@ -44,10 +47,43 @@ namespace sane_in_the_membrane::ui {
         friend class CImageItemContainer;
 
       public:
+        struct SQtMatrix {
+            SQtMatrix();
+            SQtMatrix(QTransform& transform);
+
+            qreal m11;
+            qreal m12;
+            qreal m13;
+            qreal m21;
+            qreal m22;
+            qreal m23;
+            qreal m31;
+            qreal m32;
+            qreal m33;
+        };
+
+        struct SImageItemSerialized {
+            SImageItemSerialized();
+            SImageItemSerialized(CImageItem& item);
+
+            SQtMatrix                                  transform_matrix;
+            std::size_t                                page_number;
+            std::string                                path;
+
+            service::Bytes                             serialize() const;
+            static std::optional<SImageItemSerialized> deserialize(const unsigned char* start, const unsigned char* end);
+            std::size_t                                size() const;
+        };
+
+      public:
         ~CImageItem();
 
       private:
         CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent);
+        CImageItem(SImageItemSerialized& serialized_item, QWidget* parent);
+
+      private:
+        void setup_layout_and_connections();
 
       public:
         std::shared_ptr<utils::CFile>        file() const;
@@ -100,7 +136,10 @@ namespace sane_in_the_membrane::ui {
         CImageItemContainer(QWidget* parent);
         ~CImageItemContainer();
 
-        CImageItem*                     add_image(std::shared_ptr<utils::CFile>& file, QWidget* parent);
+        CImageItem* add_image(std::shared_ptr<utils::CFile>& file, QWidget* parent);
+        // Takes ownership of item
+        CImageItem*                     add_image(CImageItem* item);
+        CImageItem*                     add_image(CImageItem::SImageItemSerialized& serialized_item, QWidget* parent);
         void                            remove_image(CImageItem* item);
         void                            move_image(CImageItem* item, EMoveDirection direction);
         std::size_t                     image_count() const;
@@ -125,10 +164,12 @@ namespace sane_in_the_membrane::ui {
         void sig_document_changed(std::size_t item_count);
 
       private slots:
-        void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
-        void sl_save_pdf();
-        void move_image(CImageItem* item, EMoveDirection direction);
-        void remove_image(CImageItem* item);
+        void           sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
+        void           sl_save_pdf();
+        void           move_image(CImageItem* item, EMoveDirection direction);
+        void           remove_image(CImageItem* item);
+        service::Bytes serialize_items();
+        void           deserialize_items(service::Bytes& data);
 
       private:
         QVBoxLayout* const                   m_main_layout;
@@ -136,6 +177,7 @@ namespace sane_in_the_membrane::ui {
         CImageItemContainer* const           m_grid;
         image::CImageHorizontalScroll* const m_scroll;
         QPushButton* const                   m_save;
+        service::CSessionService             m_session;
 #ifdef OCR
         QCheckBox* const      m_ocr_checkbox;
         ocr::COcrMyPdfProcess m_ocr_processor{};

@@ -18,6 +18,8 @@
 #include "../Utils/Pdf/Pdf.hpp"
 #include "Assert.hpp"
 #include "Image/ImageToolbar.hpp"
+#include "Service/SessionService.hpp"
+#include "Utils/File.hpp"
 #include <QImage>
 #include <QBuffer>
 #include <QTransform>
@@ -30,12 +32,78 @@ using namespace sane_in_the_membrane;
 using namespace sane_in_the_membrane::ui;
 using namespace sane_in_the_membrane::utils::pdf;
 
+CImageItem::SQtMatrix::SQtMatrix() {}
+CImageItem::SQtMatrix::SQtMatrix(QTransform& transform) :
+    m11(transform.m11()), m12(transform.m12()), m13(transform.m13()), m21(transform.m21()), m22(transform.m22()), m23(transform.m23()), m31(transform.m31()), m32(transform.m32()),
+    m33(transform.m33()) {}
+
+CImageItem::SImageItemSerialized::SImageItemSerialized() {}
+CImageItem::SImageItemSerialized::SImageItemSerialized(CImageItem& item) :
+    transform_matrix(item.m_transform), page_number(item.m_page_number), path(item.m_file->path().string()) {}
+
+service::Bytes CImageItem::SImageItemSerialized::serialize() const {
+    auto           path_size = path.size();
+    service::Bytes bytes(sizeof(transform_matrix) + sizeof(page_number) + sizeof(path_size) + path_size);
+
+    auto           data_ptr = bytes.data();
+
+    std::memcpy(data_ptr, &transform_matrix, sizeof(transform_matrix));
+    data_ptr += sizeof(transform_matrix);
+
+    std::memcpy(data_ptr, &page_number, sizeof(page_number));
+    data_ptr += sizeof(page_number);
+
+    std::memcpy(data_ptr, &path_size, sizeof(path_size));
+    data_ptr += sizeof(path_size);
+
+    std::memcpy(data_ptr, path.data(), path_size);
+
+    return bytes;
+}
+
+std::optional<CImageItem::SImageItemSerialized> CImageItem::SImageItemSerialized::deserialize(const unsigned char* start, const unsigned char* end) {
+    SImageItemSerialized out;
+
+    if (start + sizeof(out.transform_matrix) > end) {
+        log::error("Provided bytes cannot be converted into transform_matrix");
+        return std::nullopt;
+    }
+    std::memcpy(&out.transform_matrix, start, sizeof(out.transform_matrix));
+    start += sizeof(out.transform_matrix);
+
+    if (start + sizeof(out.page_number) > end) {
+        log::error("Provided bytes cannot be converted into page_number");
+        return std::nullopt;
+    }
+
+    std::memcpy(&out.page_number, start, sizeof(out.page_number));
+    start += sizeof(out.page_number);
+
+    std::size_t path_size = 0;
+    if (start + sizeof(path_size) > end) {
+        log::error("Provided bytes cannot be converted into path_size");
+        return std::nullopt;
+    }
+
+    std::memcpy(&path_size, start, sizeof(path_size));
+    start += sizeof(path_size);
+
+    if (start + path_size > end) {
+        log::error("Provided bytes cannot be converted into path");
+        return std::nullopt;
+    }
+    out.path.assign(reinterpret_cast<const char*>(start), path_size);
+
+    return out;
+}
+
+std::size_t CImageItem::SImageItemSerialized::size() const {
+    return sizeof(transform_matrix) + sizeof(page_number) + sizeof(path) + path.size();
+}
+
 CImageItem::~CImageItem() {}
 
-CImageItem::CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent) :
-    QWidget(parent), m_file(file), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)), m_pixmap(QString::fromStdString(file->path().string())),
-    m_toolbar(new image::CImageToolbar{page_number}), m_page_number(page_number) {
-
+void CImageItem::setup_layout_and_connections() {
     QObject::connect(m_toolbar->m_btn_rotate_left, &QPushButton::clicked, this, [this]() {
         m_transform.rotate(-90);
         set_pixmap();
@@ -65,6 +133,18 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_num
     m_layout->addWidget(m_toolbar, 0, Qt::AlignHCenter);
 }
 
+CImageItem::CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_number, QWidget* parent) :
+    QWidget(parent), m_file(file), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)), m_pixmap(QString::fromStdString(file->path().string())),
+    m_toolbar(new image::CImageToolbar{page_number}), m_page_number(page_number) {
+    setup_layout_and_connections();
+}
+
+CImageItem::CImageItem(SImageItemSerialized& serialized_item, QWidget* parent) :
+    QWidget(parent), m_file(std::make_shared<utils::CFile>(serialized_item.path)), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)),
+    m_pixmap(QString::fromStdString(serialized_item.path)), m_toolbar(new image::CImageToolbar{serialized_item.page_number}), m_page_number(serialized_item.page_number) {
+    setup_layout_and_connections();
+}
+
 const std::shared_ptr<utils::CFile>& CImageItem::file_ref() const {
     return m_file;
 }
@@ -78,8 +158,8 @@ void CImageItem::sl_remove_me() {
 }
 
 void CImageItem::set_pixmap() {
-    constexpr int MAX_W = 640;
-    constexpr int MAX_H = 640;
+    constexpr int MAX_W = 600;
+    constexpr int MAX_H = 600;
 
     if (m_preview_disabled) {
         m_image_label->setText("Preview disabled");
@@ -132,9 +212,21 @@ CImageItemContainer::~CImageItemContainer() {}
 
 CImageItem* CImageItemContainer::add_image(std::shared_ptr<utils::CFile>& file, QWidget* parent) {
     auto item = new CImageItem{file, m_manager.items().size() + 1, parent};
-    m_manager.add_item(item);
+    add_image(item);
 
+    return item;
+}
+
+CImageItem* CImageItemContainer::add_image(CImageItem* item) {
+    m_manager.add_item(item);
     addWidget(item);
+
+    return item;
+}
+
+CImageItem* CImageItemContainer::add_image(CImageItem::SImageItemSerialized& serialized_item, QWidget* parent) {
+    auto item = new CImageItem(serialized_item, parent);
+    add_image(item);
 
     return item;
 }
@@ -277,4 +369,37 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
 
 void CImageView::move_image(CImageItem* item, EMoveDirection direction) {
     m_grid->move_image(item, direction);
+}
+
+service::Bytes CImageView::serialize_items() {
+    service::Bytes data{};
+    for (auto& item : m_grid->items()) {
+        CImageItem::SImageItemSerialized serializable_item{*item};
+        auto                             serialized_data = serializable_item.serialize();
+        auto                             size            = serialized_data.size();
+
+        data.resize(data.size() + sizeof(size));
+        std::memcpy(data.data() + data.size() - sizeof(size), &size, sizeof(size));
+
+        data.insert(data.end(), serialized_data.begin(), serialized_data.end());
+    }
+
+    return data;
+}
+
+void CImageView::deserialize_items(service::Bytes& data) {
+    auto start = data.data();
+    auto end   = start + data.size();
+    while (start < end) {
+        std::size_t item_length = *reinterpret_cast<std::size_t*>(start);
+        auto        item_start  = start + sizeof(std::size_t);
+        auto        item_end    = item_start + item_length;
+
+        SITM_ASSERT(item_end <= end, "Item end is outside of allowed range");
+        auto item_data = CImageItem::SImageItemSerialized::deserialize(item_start, item_end);
+        if (item_data)
+            m_grid->add_image(item_data.value(), this);
+
+        start = item_end;
+    }
 }
