@@ -65,8 +65,8 @@ void CImageToolbar::set_icons() {
 
     m_btn_move_prev->setIcon(icons::colourize_svg(icons::CIcons::ARROW_LEFT, colour, size));
     m_btn_move_next->setIcon(icons::colourize_svg(icons::CIcons::ARROW_RIGHT, colour, size));
-    m_btn_rotate_left->setIcon(icons::colourize_svg(icons::CIcons::ARROW_CLOCKWISE, colour, size));
-    m_btn_rotate_right->setIcon(icons::colourize_svg(icons::CIcons::ARROW_COUNTER_CLOCKWISE, colour, size));
+    m_btn_rotate_left->setIcon(icons::colourize_svg(icons::CIcons::ARROW_COUNTER_CLOCKWISE, colour, size));
+    m_btn_rotate_right->setIcon(icons::colourize_svg(icons::CIcons::ARROW_CLOCKWISE, colour, size));
     m_btn_mirror->setIcon(icons::colourize_svg(icons::CIcons::MIRROR, colour, size));
     m_btn_delete->setIcon(icons::colourize_svg(icons::CIcons::RUBBISH_BIN, colour, size));
 }

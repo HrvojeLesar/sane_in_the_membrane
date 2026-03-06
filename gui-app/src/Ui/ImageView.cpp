@@ -12,6 +12,7 @@
 #include <qpixmap.h>
 #include <qpushbutton.h>
 #include <qsizepolicy.h>
+#include <qtransform.h>
 #include <qwidget.h>
 #include "../Utils/Globals.hpp"
 #include <QFileDialog>
@@ -191,6 +192,17 @@ void CImageItem::set_page_number(std::size_t page_number) {
     m_toolbar->set_page_number(page_number);
 }
 
+utils::pdf::SPdfMatrix CImageItem::matrix() const {
+    return utils::pdf::SPdfMatrix{
+        .a = static_cast<float>(m_transform.m11()),
+        .b = static_cast<float>(m_transform.m12()),
+        .c = static_cast<float>(m_transform.m21()),
+        .d = static_cast<float>(m_transform.m22()),
+        .x = static_cast<float>(m_transform.dx()),
+        .y = static_cast<float>(m_transform.dy()),
+    };
+}
+
 std::size_t CImageItem::get_page_number() {
     return m_page_number;
 }
@@ -330,8 +342,13 @@ void CImageView::sl_save_pdf() {
         return;
     }
 
-    auto pdf         = sane_in_the_membrane::utils::pdf::CPdfBuilder::build_default();
-    auto image_paths = std::views::transform(m_grid->items(), [](const CImageItem* item) { return item->file_ref()->path().string(); });
+    auto pdf = sane_in_the_membrane::utils::pdf::CPdfBuilder::build_default();
+
+    // WARN: Currently many many copies of matrix are made 3-4 which is dumb
+    std::vector<std::pair<std::string, SPdfMatrix>> image_paths{};
+    for (const auto item : m_grid->items())
+        image_paths.emplace_back(item->file_ref()->path().string(), item->matrix());
+
     pdf.add_jpegs(image_paths.begin(), image_paths.end());
     pdf.save(selected_file_name.toStdString());
 

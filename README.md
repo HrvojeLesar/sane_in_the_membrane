@@ -32,7 +32,7 @@ Features, tasks and ideas to do in no particular order:
 - [x] Decouple pages logic from direct rendering
 - [x] Ask to quit only when files are not saved
 - [x] Session restoration
-- [ ] Correctly handle image transformations when saving them to pdf
-    - [ ] Rotate image
-    - [ ] Mirror image
+- [x] Correctly handle image transformations when saving them to pdf
+    - [x] Rotate image
+    - [x] Mirror image
 - [ ] Document dependencies and build process

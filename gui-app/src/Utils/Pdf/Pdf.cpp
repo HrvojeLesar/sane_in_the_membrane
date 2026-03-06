@@ -1,9 +1,11 @@
 #include "Pdf.hpp"
+#include "hpdf.h"
 #include "hpdf_types.h"
 
 #include <exception>
 #include <format>
 #include <GLogger.hpp>
+#include <qpoint.h>
 
 using namespace sane_in_the_membrane::utils::pdf;
 
@@ -17,7 +19,7 @@ void CPdf::error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void* user
     log::error("HPDF failed with errno: {} and detail_no: {}", error_no, detail_no);
 }
 
-bool CPdf::add_image(HPDF_Image image) {
+bool CPdf::add_image(HPDF_Image image, SPdfMatrix* matrix) {
     HPDF_Page page = HPDF_AddPage(*m_doc);
     if (page == nullptr) {
         return false;
@@ -30,8 +32,31 @@ bool CPdf::add_image(HPDF_Image image) {
     HPDF_REAL img_width  = HPDF_Image_GetWidth(image);
     HPDF_REAL img_height = HPDF_Image_GetHeight(image);
 
-    HPDF_Page_SetWidth(page, img_width);
-    HPDF_Page_SetHeight(page, img_height);
+    if (matrix) {
+        float a = matrix->a;
+        float b = -matrix->b;
+        float c = -matrix->c;
+        float d = matrix->d;
+
+        auto  map_x = [&](float x, float y) { return a * x + c * y; };
+        auto  map_y = [&](float x, float y) { return b * x + d * y; };
+
+        float xs[4] = {map_x(0, 0), map_x(img_width, 0), map_x(0, img_height), map_x(img_width, img_height)};
+        float ys[4] = {map_y(0, 0), map_y(img_width, 0), map_y(0, img_height), map_y(img_width, img_height)};
+
+        float min_x = *std::min_element(xs, xs + 4);
+        float min_y = *std::min_element(ys, ys + 4);
+        float max_x = *std::max_element(xs, xs + 4);
+        float max_y = *std::max_element(ys, ys + 4);
+
+        HPDF_Page_SetWidth(page, max_x - min_x);
+        HPDF_Page_SetHeight(page, max_y - min_y);
+
+        HPDF_Page_Concat(page, a, b, c, d, -min_x, -min_y);
+    } else {
+        HPDF_Page_SetWidth(page, img_width);
+        HPDF_Page_SetHeight(page, img_height);
+    }
 
     HPDF_Page_DrawImage(page, image, 0, 0, img_width, img_height);
 
@@ -51,19 +76,19 @@ bool CPdf::add_raw_image(const std::string& raw_image_path, sane_in_the_membrane
 
     HPDF_Image image = HPDF_LoadRawImageFromFile(*m_doc, raw_image_path.c_str(), params.width(), params.height(), color_space);
 
-    return add_image(image);
+    return add_image(image, nullptr);
 }
 
-bool CPdf::add_jpeg(const std::string& path) {
+bool CPdf::add_jpeg(const std::string& path, SPdfMatrix* transform_matrix) {
     HPDF_Image image = HPDF_LoadJpegImageFromFile(*m_doc, path.c_str());
 
-    return add_image(image);
+    return add_image(image, transform_matrix);
 }
 
-bool CPdf::add_png(const std::string& path) {
+bool CPdf::add_png(const std::string& path, SPdfMatrix* transform_matrix) {
     HPDF_Image image = HPDF_LoadPngImageFromFile2(*m_doc, path.c_str());
 
-    return add_image(image);
+    return add_image(image, transform_matrix);
 }
 
 HPDF_STATUS CPdf::save(const std::string& path) {

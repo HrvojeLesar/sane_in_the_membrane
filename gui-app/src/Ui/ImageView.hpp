@@ -25,6 +25,7 @@
 #include <QScrollArea>
 #include <QPushButton>
 #include "Utils/File.hpp"
+#include "Utils/Pdf/Pdf.hpp"
 #include "Utils/ScannerUtils.hpp"
 #include "Image/ImageToolbar.hpp"
 #include <SynchronizedAccess.hpp>
@@ -91,8 +92,9 @@ namespace sane_in_the_membrane::ui {
         const std::shared_ptr<utils::CFile>& file_ref() const;
 
       public:
-        std::size_t get_page_number();
-        void        set_page_number(std::size_t page_number);
+        std::size_t            get_page_number();
+        void                   set_page_number(std::size_t page_number);
+        utils::pdf::SPdfMatrix matrix() const;
 
       signals:
         void sig_remove_requested(CImageItem* item);
