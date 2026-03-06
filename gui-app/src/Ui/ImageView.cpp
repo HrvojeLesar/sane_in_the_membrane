@@ -5,8 +5,10 @@
 #include <qboxlayout.h>
 #include <qforeach.h>
 #include <qimage.h>
+#include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qobject.h>
+#include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
 #include <qsizepolicy.h>
@@ -26,6 +28,7 @@
 #include <QObject>
 #include <utility>
 #include <vector>
+#include <QTimer>
 #include <GLogger.hpp>
 
 using namespace sane_in_the_membrane;
@@ -107,14 +110,18 @@ void CImageItem::setup_layout_and_connections() {
     QObject::connect(m_toolbar->m_btn_rotate_left, &QPushButton::clicked, this, [this]() {
         m_transform.rotate(-90);
         set_pixmap();
+        emit sig_transform(this);
     });
+
     QObject::connect(m_toolbar->m_btn_rotate_right, &QPushButton::clicked, this, [this]() {
         m_transform.rotate(90);
         set_pixmap();
+        emit sig_transform(this);
     });
     QObject::connect(m_toolbar->m_btn_mirror, &QPushButton::clicked, this, [this]() {
         m_transform.scale(-1, 1);
         set_pixmap();
+        emit sig_transform(this);
     });
 
     QObject::connect(m_toolbar->m_btn_delete, &QPushButton::clicked, this, &CImageItem::sl_remove_me);
@@ -142,6 +149,9 @@ CImageItem::CImageItem(std::shared_ptr<utils::CFile>& file, std::size_t page_num
 CImageItem::CImageItem(SImageItemSerialized& serialized_item, QWidget* parent) :
     QWidget(parent), m_file(std::make_shared<utils::CFile>(serialized_item.path)), m_layout(new QVBoxLayout(this)), m_image_label(new QLabel(this)),
     m_pixmap(QString::fromStdString(serialized_item.path)), m_toolbar(new image::CImageToolbar{serialized_item.page_number}), m_page_number(serialized_item.page_number) {
+    m_transform.setMatrix(serialized_item.transform_matrix.m11, serialized_item.transform_matrix.m12, serialized_item.transform_matrix.m13, serialized_item.transform_matrix.m21,
+                          serialized_item.transform_matrix.m22, serialized_item.transform_matrix.m23, serialized_item.transform_matrix.m31, serialized_item.transform_matrix.m32,
+                          serialized_item.transform_matrix.m33);
     setup_layout_and_connections();
 }
 
@@ -331,21 +341,40 @@ void CImageView::sl_save_pdf() {
 #endif
 
     emit sig_document_saved();
+
+    m_session.remove_session();
 }
 
 void CImageView::add_image(std::shared_ptr<utils::CFile>& file) {
     auto item = m_grid->add_image(file, this);
-
-    connect(item, &CImageItem::sig_remove_requested, this, &CImageView::remove_image);
-    connect(item, &CImageItem::sig_move_page_by, this, &CImageView::move_image);
-
-    emit sig_document_changed(m_grid->image_count());
+    init_image_connetions(item);
 }
 
-void CImageView::remove_image(CImageItem* item) {
+void CImageView::add_image(CImageItem::SImageItemSerialized& serialized_item) {
+    auto item = m_grid->add_image(serialized_item, this);
+    init_image_connetions(item);
+}
+
+void CImageView::init_image_connetions(CImageItem* item) {
+    connect(item, &CImageItem::sig_remove_requested, this, &CImageView::sl_remove_image);
+    connect(item, &CImageItem::sig_move_page_by, this, &CImageView::sl_move_image);
+    connect(item, &CImageItem::sig_transform, this, &CImageView::sl_transform);
+
+    emit sig_document_changed(m_grid->image_count());
+
+    save_session();
+}
+
+void CImageView::sl_remove_image(CImageItem* item) {
     m_grid->remove_image(item);
 
     emit sig_document_changed(m_grid->count());
+
+    save_session();
+}
+
+void CImageView::sl_transform(CImageItem* item) {
+    save_session();
 }
 
 void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params) {
@@ -367,8 +396,10 @@ void CImageView::sl_sig_done(const std::shared_ptr<grpc::Status> status, std::sh
     add_image(image_file);
 }
 
-void CImageView::move_image(CImageItem* item, EMoveDirection direction) {
+void CImageView::sl_move_image(CImageItem* item, EMoveDirection direction) {
     m_grid->move_image(item, direction);
+
+    save_session();
 }
 
 service::Bytes CImageView::serialize_items() {
@@ -387,19 +418,72 @@ service::Bytes CImageView::serialize_items() {
     return data;
 }
 
-void CImageView::deserialize_items(service::Bytes& data) {
-    auto start = data.data();
-    auto end   = start + data.size();
+std::expected<std::vector<CImageItem::SImageItemSerialized>, std::string> CImageView::deserialize_items(service::Bytes& data) {
+    auto                                          start = data.data();
+    auto                                          end   = start + data.size();
+
+    std::vector<CImageItem::SImageItemSerialized> items{};
     while (start < end) {
         std::size_t item_length = *reinterpret_cast<std::size_t*>(start);
         auto        item_start  = start + sizeof(std::size_t);
         auto        item_end    = item_start + item_length;
 
-        SITM_ASSERT(item_end <= end, "Item end is outside of allowed range");
+        if (item_end > end)
+            return std::unexpected{"Item end is outside of allowed range"};
+        // SITM_ASSERT(item_end <= end, "Item end is outside of allowed range");
         auto item_data = CImageItem::SImageItemSerialized::deserialize(item_start, item_end);
         if (item_data)
-            m_grid->add_image(item_data.value(), this);
+            items.push_back(std::move(item_data).value());
 
         start = item_end;
     }
+
+    return items;
+}
+
+void CImageView::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    QTimer::singleShot(0, this, [this]() {
+        auto session = m_session.load_session();
+        if (!session.has_value())
+            return;
+
+        auto items = deserialize_items(session.value().data);
+        if (!items.has_value())
+            return;
+
+        QMessageBox session_detected_box{};
+        session_detected_box.setText("Detected previous scan session. Load session ?");
+
+        session_detected_box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        session_detected_box.setDefaultButton(QMessageBox::Ok);
+
+        auto exec_status = session_detected_box.exec();
+
+        std::sort(items.value().begin(), items.value().end(),
+                  [](const CImageItem::SImageItemSerialized& a, const CImageItem::SImageItemSerialized& b) { return a.page_number < b.page_number; });
+
+        switch (exec_status) {
+            case QMessageBox::Ok:
+            case QMessageBox::Close:
+                for (auto& item : items.value())
+                    add_image(item);
+
+            default: break;
+        }
+
+        m_session_saving_disabled = false;
+    });
+}
+
+void CImageView::save_session() {
+    if (m_session_saving_disabled)
+        return;
+
+    auto data = serialize_items();
+    m_session.save_session(data);
+}
+
+void CImageView::remove_session() {
+    m_session.remove_session();
 }

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <grpcpp/support/status.h>
 #include <memory>
 #include <optional>
@@ -97,6 +98,7 @@ namespace sane_in_the_membrane::ui {
         void sig_remove_requested(CImageItem* item);
         void sig_reposition();
         void sig_move_page_by(CImageItem* item, EMoveDirection move_to);
+        void sig_transform(CImageItem* item);
 
       private slots:
         void sl_remove_me();
@@ -158,18 +160,32 @@ namespace sane_in_the_membrane::ui {
       public:
         explicit CImageView(std::string filepath = "", QWidget* parent = nullptr);
         void add_image(std::shared_ptr<utils::CFile>& file);
+        void add_image(CImageItem::SImageItemSerialized& serialized_item);
+
+      private:
+        void init_image_connetions(CImageItem* item);
 
       signals:
         void sig_document_saved();
         void sig_document_changed(std::size_t item_count);
 
       private slots:
-        void           sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
-        void           sl_save_pdf();
-        void           move_image(CImageItem* item, EMoveDirection direction);
-        void           remove_image(CImageItem* item);
-        service::Bytes serialize_items();
-        void           deserialize_items(service::Bytes& data);
+        void sl_sig_done(const std::shared_ptr<grpc::Status> status, std::shared_ptr<utils::CFile> file, std::shared_ptr<utils::ScannerParameters> params);
+        void sl_save_pdf();
+        void sl_move_image(CImageItem* item, EMoveDirection direction);
+        void sl_remove_image(CImageItem* item);
+        void sl_transform(CImageItem* item);
+
+      private:
+        service::Bytes                                                            serialize_items();
+        std::expected<std::vector<CImageItem::SImageItemSerialized>, std::string> deserialize_items(service::Bytes& data);
+
+      public:
+        void save_session();
+        void remove_session();
+
+      protected:
+        void showEvent(QShowEvent* event) override;
 
       private:
         QVBoxLayout* const                   m_main_layout;
@@ -182,6 +198,7 @@ namespace sane_in_the_membrane::ui {
         QCheckBox* const      m_ocr_checkbox;
         ocr::COcrMyPdfProcess m_ocr_processor{};
 #endif
+        bool m_session_saving_disabled{true};
     };
 }
 

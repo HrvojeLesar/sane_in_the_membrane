@@ -29,6 +29,7 @@ namespace sane_in_the_membrane::service {
         CSessionService();
         void                                           save_session(Bytes& data);
         std::expected<SSessionData, ESessionLoadError> load_session();
+        void                                           remove_session();
 
       private:
         CFileManager   m_file_manager;

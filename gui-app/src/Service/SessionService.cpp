@@ -1,5 +1,6 @@
 #include "SessionService.hpp"
 #include <Assert.hpp>
+#include <filesystem>
 
 using namespace sane_in_the_membrane::service;
 
@@ -42,4 +43,8 @@ std::expected<CSessionHeader, ESessionHeaderConversionError> CSessionHeader::fro
         return std::unexpected(ESessionHeaderConversionError::HEADER_VERSION_MISMATCH);
 
     return CSessionHeader{raw_header->m_data_length};
+}
+
+void CSessionService::remove_session() {
+    std::filesystem::remove(m_session_file.path());
 }
