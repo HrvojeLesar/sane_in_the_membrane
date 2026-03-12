@@ -17,6 +17,55 @@ a scan. Currently all data transferred from the server to client is
 uncompressed and unencrypted.
 Client supports previewing scans and exporting scanned pages into a pdf document.
 
+## Features
+
+### Server
+
+- Uses locally installed and configured SANE scanners
+- Provides an easy to use gRPC interface for reading data from a scanner as it scans
+- Automatic service publishing over mDNS on local network (requires [avahi](https://avahi.org/)
+or similar program for automatic server detection by client)
+
+### Client
+
+- Frontend for accessing scanners
+- Displays scanned pages
+- Can reorder, rotate and delete pages
+- Supports restoring sessions if pdf file was not saved or the program
+crashed (restores unsaved pages)
+- Automatically tries to connect to an advertised service on the local network
+- Can optionally OCR all pages (if it detects that
+[OCRmyPDF](https://github.com/ocrmypdf/OCRmyPDF/) is installed on the machine and
+the binary is compiled with OCR support)
+
+<div align = center>
+<img src="imgs/client.png" width="" height="556" alt="Client interface">
+</div>
+
+## Server - dependencies
+
+Depends on `gRPC`, `avahi-client` and `sane`.
+`avahi-client` and `sane` are always linked dynamically, while `gRPC` is linked
+dynamically in debug mode but statically in release.
+Make sure to have `avahi-client` and `sane` installed for the server to work.
+
+## Client - dependencies
+
+Depends on `gRPC` and `Qt6`. `gRPC` is linked in the same way as for the server.
+`Qt6` should be available as a dynamic library to link against.
+
+## Building
+
+```shell
+cmake -B build -S . -GNinja
+cmake --build build
+```
+
+On linux systems this should build both the server and client binaries,
+also builds tests (to skip them set `-DBUILD_TESTS=OFF`).
+For windows builds see [windows build actions](.github/workflows)
+(includes a fully static build of qt and a dll build).
+
 ## TODO
 
 Features, tasks and ideas to do in no particular order:
