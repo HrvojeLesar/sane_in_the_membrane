@@ -85,3 +85,6 @@ Features, tasks and ideas to do in no particular order:
     - [x] Rotate image
     - [x] Mirror image
 - [ ] Document dependencies and build process
+- [ ] Manually connect to server
+- [ ] Manual server port binding
+- [ ] Server utils for checking port of running server

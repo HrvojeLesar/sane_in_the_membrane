@@ -13,6 +13,7 @@
 #include <thread>
 #include <unistd.h>
 #include <vector>
+#include "IPC/IPC.hpp"
 #include "Service/ScannerService.hpp"
 #include <GLogger.hpp>
 #include "mDns/AvahiServiceRegistration.hpp"
@@ -37,6 +38,7 @@ namespace sane_in_the_membrane::startup {
             m_threads.emplace_back(SGrpcServerWorker(*this));
             m_threads.emplace_back(SAvahiServiceWorker(*this));
             m_threads.emplace_back(SGetDevicesWorker(*this));
+            m_threads.emplace_back(SIPCWorker(*this));
 
             std::signal(SIGINT, sigint_handler);
             log::trace("CStartupOrchestrator constructed");
@@ -64,6 +66,8 @@ namespace sane_in_the_membrane::startup {
             m_builder.AddListeningPort("[::]:0", grpc::InsecureServerCredentials(), &m_port);
             m_builder.RegisterService(&m_scanner_service_impl);
             m_builder.SetDefaultCompressionAlgorithm(GRPC_COMPRESS_GZIP);
+
+            m_ipc.set_port(m_port);
 
             m_grpc_server = m_builder.BuildAndStart();
 
@@ -143,6 +147,16 @@ namespace sane_in_the_membrane::startup {
             CStartupOrchestrator& m_orchestrator;
         };
 
+        struct SIPCWorker {
+            SIPCWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
+
+            void operator()() {
+                m_orchestrator.m_ipc.initialize();
+            }
+
+            CStartupOrchestrator& m_orchestrator;
+        };
+
         void init_shutdown() {
             if (m_grpc_server) {
                 log::info("Trying to shutdown grpc");
@@ -151,6 +165,8 @@ namespace sane_in_the_membrane::startup {
 
             m_avahi_service.shutdown();
             m_read_stdin.store(false, std::memory_order::relaxed);
+
+            m_ipc.shutdown();
         }
 
       private:
@@ -165,6 +181,8 @@ namespace sane_in_the_membrane::startup {
         grpc::ResourceQuota                                m_resource_quota{};
         grpc::ServerBuilder                                m_builder{};
         int                                                m_port{0};
+
+        sane_in_the_membrane::ipc::CIPC                    m_ipc{};
 
         static inline CStartupOrchestrator*                instance = nullptr;
     };
