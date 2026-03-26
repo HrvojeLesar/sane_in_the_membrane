@@ -113,6 +113,7 @@ endif()
 if(BUILD_SERVER AND NOT (WIN32 OR MINGW))
     add_subdirectory(sane_wrapper)
     add_subdirectory(server)
+    add_subdirectory(serverctl)
 endif()
 
 if (BUILD_TESTS AND NOT WIN32)

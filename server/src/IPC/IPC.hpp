@@ -18,7 +18,7 @@ namespace sane_in_the_membrane::ipc {
         static constexpr int READ_BUFFER_SIZE = 1024;
 
       public:
-        void initialize();
+        void start_blocking();
         void shutdown();
 
       private:

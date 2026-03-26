@@ -67,11 +67,11 @@ namespace sane_in_the_membrane::startup {
             m_builder.RegisterService(&m_scanner_service_impl);
             m_builder.SetDefaultCompressionAlgorithm(GRPC_COMPRESS_GZIP);
 
-            m_ipc.set_port(m_port);
-
             m_grpc_server = m_builder.BuildAndStart();
 
             log::info("gRPC bound to port: {}", m_port);
+
+            m_ipc.set_port(m_port);
         }
 
         struct SStdinWorker {
@@ -151,7 +151,9 @@ namespace sane_in_the_membrane::startup {
             SIPCWorker(CStartupOrchestrator& orchestrator) : m_orchestrator(orchestrator) {}
 
             void operator()() {
-                m_orchestrator.m_ipc.initialize();
+                m_orchestrator.m_ipc.start_blocking();
+
+                log::info("Shut down IPC worker");
             }
 
             CStartupOrchestrator& m_orchestrator;

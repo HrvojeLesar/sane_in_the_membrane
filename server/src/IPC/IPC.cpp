@@ -14,7 +14,7 @@
 using namespace sane_in_the_membrane;
 using namespace sane_in_the_membrane::ipc;
 
-void CIPC::initialize() {
+void CIPC::start_blocking() {
     const auto socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socket_fd < 0) {
         log::warn("Failed to start IPC socket. IPC will not work. Error: {}", strerror(errno));

@@ -87,4 +87,4 @@ Features, tasks and ideas to do in no particular order:
 - [ ] Document dependencies and build process
 - [ ] Manually connect to server
 - [ ] Manual server port binding
-- [ ] Server utils for checking port of running server
+- [x] Server utils for checking port of running server
